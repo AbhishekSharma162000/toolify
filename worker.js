@@ -1,10 +1,8 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const indexUrl = new URL("/index.html", url.origin);
 
-    // always return index.html no matter what
-    return env.ASSETS.fetch(
-      url.origin + "/index.html"
-    );
+    return env.ASSETS.fetch(new Request(indexUrl.toString(), request));
   },
 };
