@@ -6,3 +6,7 @@ compatibility_date = "2024-01-01"
 directory = "./public"
 not_found_handling = "single-page-application"
 binding = "ASSETS"
+
+[[routes]]
+pattern = "toolzyo.shop/*"
+zone_name = "toolzyo.shop"
