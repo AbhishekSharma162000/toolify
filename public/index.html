@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Toolify — Free Online Tools</title>
+<!-- SEO_META_PLACEHOLDER -->
+<link rel="canonical" href="https://toolzyo.shop/">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <style>
@@ -15,7 +17,7 @@ body.light{background:#f4f4f8;color:#1a1a2e}
 body.dark{--card:#1a1a24;--border:#2a2a38;--bg2:#0f0f13;--muted:#8888aa;--sub:#44445a;--inp:#0f0f13}
 body.light{--card:#ffffff;--border:#e2e2ec;--bg2:#f4f4f8;--muted:#6b6b8a;--sub:#9999b3;--inp:#f9f9fd}
 .navbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
-.logo{font-size:20px;font-weight:800;color:var(--p);cursor:pointer}
+.logo{font-size:20px;font-weight:800;color:var(--p);cursor:pointer;text-decoration:none}
 .theme-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600}
 .theme-btn:hover{border-color:var(--p);color:var(--p)}
 .hero{text-align:center;padding:48px 20px 32px}
@@ -33,7 +35,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 .cat.active,.cat:hover{background:var(--p);border-color:var(--p);color:#fff}
 .sec-lbl{font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:1px;padding:12px 28px 4px;max-width:1280px;margin:0 auto}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;padding:8px 28px 16px;max-width:1280px;margin:0 auto}
-.tc{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;cursor:pointer;transition:all .2s}
+.tc{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;cursor:pointer;transition:all .2s;text-decoration:none;color:inherit;display:block}
 .tc:hover{border-color:var(--p);transform:translateY(-2px)}
 .ti{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
 .tn{font-size:13px;font-weight:600;margin-bottom:3px}
@@ -41,7 +43,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 .bx{display:inline-block;margin-top:6px;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(124,111,255,.15);color:var(--p);border:1px solid rgba(124,111,255,.25)}
 .hot{background:rgba(229,62,62,.12);color:var(--r);border-color:rgba(229,62,62,.25)}
 .tp{max-width:980px;margin:0 auto;padding:20px}
-.back{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 13px;border-radius:8px;cursor:pointer;font-size:12px;margin-bottom:16px;transition:all .2s}
+.back{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 13px;border-radius:8px;cursor:pointer;font-size:12px;margin-bottom:16px;transition:all .2s;text-decoration:none;display:inline-block}
 .back:hover{border-color:var(--p);color:var(--p)}
 .ttl{font-size:22px;font-weight:800;margin-bottom:4px}
 .tsub{color:var(--muted);margin-bottom:18px;font-size:13px}
@@ -150,12 +152,41 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 .rp-desc-bullet{padding-left:14px;position:relative;line-height:1.6}
 .rp-desc-bullet::before{content:'•';position:absolute;left:2px}
 </style>
+<script>(function(){
+var _u={'/':null,
+'/emi-calculator':'emi','/home-loan-eligibility':'homeloan',
+'/sip-calculator':'sip','/compound-interest-calculator':'compound',
+'/fd-rd-calculator':'fd','/income-tax-calculator':'tax',
+'/salary-ctc-calculator':'salary','/gst-calculator':'gst',
+'/gst-invoice-generator':'invoice','/discount-calculator':'discount',
+'/roi-calculator':'roi','/gratuity-calculator':'gratuity',
+'/epf-pf-calculator':'pf','/tds-calculator':'tds',
+'/break-even-calculator':'breakeven','/freelance-rate-calculator':'freelance',
+'/percentage-calculator':'percent','/stamp-duty-calculator':'stampduty',
+'/rent-vs-buy-calculator':'rentvsbuy','/calorie-calculator':'calorie',
+'/bmi-calculator':'bmi','/age-calculator':'age',
+'/date-difference-calculator':'datediff','/tip-calculator':'tip',
+'/cgpa-calculator':'cgpa','/resume-builder':'resume',
+'/budget-planner':'budget','/business-proposal-generator':'proposal',
+'/business-letterhead-generator':'letterhead','/word-counter':'word',
+'/case-converter':'case','/password-generator':'pass',
+'/qr-code-generator':'qr','/color-converter':'color',
+'/css-gradient-generator':'gradient','/color-palette-generator':'palette',
+'/json-formatter':'json','/base64-encoder-decoder':'base64',
+'/url-encoder-decoder':'url','/hash-generator':'hash',
+'/regex-tester':'regex','/markdown-to-html':'markdown',
+'/image-compressor':'imgcompress','/unit-converter':'unit',
+'/pdf-merge':'merge','/image-to-pdf':'img2pdf','/pdf-split':'split',
+'/word-to-pdf':'word2pdf','/pdf-to-word':'pdf2word'};
+window._URL_TO_ID=_u;
+window.INITIAL_PAGE=_u[location.pathname]||null;
+})();</script>
 </head>
 <body class="dark">
 <div id="app">
 
 <nav class="navbar">
-  <span class="logo" @click="goHome">⚡ Toolify</span>
+  <a class="logo" href="/" @click.prevent="goHome">⚡ Toolify</a>
   <div style="display:flex;align-items:center;gap:10px">
     <span style="font-size:11px;color:var(--sub)">60+ Tools</span>
     <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
@@ -182,13 +213,13 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
   <template v-for="sec in visibleSections" :key="sec.label">
     <div class="sec-lbl">{{sec.label}}</div>
     <div class="grid">
-      <div v-for="t in sec.tools" :key="t.id" class="tc" @click="open(t.id)">
+      <a v-for="t in sec.tools" :key="t.id" class="tc" :href="toolUrl(t.id)" @click.prevent="open(t.id)">
         <div class="ti" :style="{background:t.color}">{{t.icon}}</div>
         <div class="tn">{{t.name}}</div>
         <div class="td">{{t.desc}}</div>
         <span v-if="t.hot" class="bx hot">🔥 Hot</span>
         <span v-else-if="t.popular" class="bx">⭐ Popular</span>
-      </div>
+      </a>
     </div>
   </template>
   <div class="ad">📢 Google AdSense — 336×280</div>
@@ -211,7 +242,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- RESUME BUILDER -->
 <div v-if="page==='resume'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📄 Resume Builder</div>
   <div class="tsub">Fill your details, choose a template, download as PDF instantly</div>
   <div class="ad">📢 AdSense 728×90</div>
@@ -355,7 +386,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- BUDGET PLANNER -->
 <div v-if="page==='budget'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">💰 Monthly Budget Planner</div>
   <div class="tsub">Fill income & expenses — download a PDF budget report</div>
   <div class="ad">📢 AdSense 728×90</div>
@@ -426,7 +457,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- BUSINESS PROPOSAL -->
 <div v-if="page==='proposal'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📋 Business Proposal</div>
   <div class="tsub">Fill proposal details — download a professional PDF</div>
   <div class="ad">📢 AdSense 728×90</div>
@@ -485,7 +516,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- LETTERHEAD -->
 <div v-if="page==='letterhead'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">✉️ Business Letterhead</div>
   <div class="tsub">Professional branded letterhead — fill & download PDF</div>
   <div class="ad">📢 AdSense 728×90</div>
@@ -559,7 +590,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- GST INVOICE -->
 <div v-if="page==='invoice'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📃 GST Invoice Generator</div><div class="tsub">Professional GST invoices → download PDF</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card">
@@ -593,7 +624,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- FINANCE -->
 <div v-if="page==='emi'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🏦 EMI / Loan Calculator</div><div class="tsub">Monthly EMI, total interest & amortization</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="cl">
@@ -626,7 +657,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='homeloan'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🏠 Home Loan Eligibility</div><div class="tsub">Max loan you qualify for</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="cl">
@@ -652,7 +683,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='sip'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📈 SIP Investment Planner</div><div class="tsub">Mutual fund returns with compound growth</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="cl">
@@ -675,7 +706,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='compound'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">💰 Compound Interest</div><div class="tsub">How money grows over time</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="cl">
@@ -701,7 +732,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='fd'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🏧 FD / RD Calculator</div><div class="tsub">Fixed and recurring deposit maturity</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="cl">
@@ -725,7 +756,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='tax'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">💹 Income Tax Calculator</div><div class="tsub">India FY 2024-25 — New & Old Regime</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="cl">
@@ -754,7 +785,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='salary'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">💼 Salary / CTC Breakup</div><div class="tsub">CTC to take-home breakdown</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="cl">
@@ -783,7 +814,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='gst'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🧾 GST Calculator</div><div class="tsub">Add or remove GST instantly</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:480px">
@@ -800,7 +831,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='discount'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🏷️ Discount Calculator</div><div class="tsub">Final price after discount</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:440px">
@@ -818,7 +849,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='roi'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📊 ROI Calculator</div><div class="tsub">Return on investment & payback period</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:460px">
@@ -836,7 +867,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='gratuity'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🎁 Gratuity Calculator</div><div class="tsub">As per Payment of Gratuity Act</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:460px">
@@ -851,7 +882,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='pf'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🏦 EPF / PF Calculator</div><div class="tsub">Employee Provident Fund maturity</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:480px">
@@ -877,7 +908,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='tds'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📋 TDS Calculator</div><div class="tsub">Tax Deducted at Source</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:480px">
@@ -902,7 +933,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='breakeven'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📉 Break-Even Calculator</div><div class="tsub">When does your business become profitable?</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:460px">
@@ -921,7 +952,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='freelance'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">💻 Freelance Rate Calculator</div><div class="tsub">What should you charge per hour?</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:480px">
@@ -946,7 +977,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- REAL ESTATE -->
 <div v-if="page==='stampduty'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🏢 Stamp Duty Calculator</div><div class="tsub">Property registration cost by state</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:480px">
@@ -968,7 +999,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='rentvsbuy'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🏡 Rent vs Buy Calculator</div><div class="tsub">Should you rent or buy a home?</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card">
@@ -999,7 +1030,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- HEALTH -->
 <div v-if="page==='calorie'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🔥 Calorie Calculator</div><div class="tsub">Daily calories + macro targets</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="cl">
@@ -1027,7 +1058,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='bmi'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">⚖️ BMI Calculator</div><div class="tsub">Body Mass Index with health indicator</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:440px">
@@ -1044,7 +1075,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='age'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🎂 Age Calculator</div><div class="tsub">Exact age in years, months and days</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:440px">
@@ -1066,7 +1097,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='datediff'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📅 Date Difference</div><div class="tsub">Days, weeks, months between two dates</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:460px">
@@ -1082,7 +1113,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='tip'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🍽️ Tip Calculator</div><div class="tsub">Split bill and calculate tip</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:440px">
@@ -1099,7 +1130,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='cgpa'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🎓 CGPA Calculator</div><div class="tsub">CGPA ↔ Percentage converter</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="pcards">
@@ -1119,7 +1150,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- TEXT & DEV -->
 <div v-if="page==='word'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📝 Word Counter</div><div class="tsub">Words, characters & reading time</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card">
@@ -1137,7 +1168,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='case'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🔡 Case Converter</div><div class="tsub">Convert text to any case format</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card">
@@ -1154,7 +1185,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='pass'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🔐 Password Generator</div><div class="tsub">Strong random passwords</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:500px">
@@ -1174,7 +1205,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='qr'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📱 QR Code Generator</div><div class="tsub">QR for URLs, text, phone numbers</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:480px">
@@ -1189,7 +1220,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='color'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🎨 Color Converter</div><div class="tsub">HEX ↔ RGB ↔ HSL</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:460px">
@@ -1206,7 +1237,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='gradient'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🌈 CSS Gradient Generator</div><div class="tsub">Beautiful gradients with live preview</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:560px">
@@ -1226,7 +1257,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='palette'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🎭 Color Palette Generator</div><div class="tsub">Generate palettes from a base color</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:520px">
@@ -1243,7 +1274,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='json'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📋 JSON Formatter</div><div class="tsub">Format, validate and minify JSON</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card">
@@ -1258,7 +1289,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='base64'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🔒 Base64 Encoder / Decoder</div><div class="tsub">Encode or decode Base64 strings</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card">
@@ -1272,7 +1303,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='url'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🔗 URL Encoder / Decoder</div><div class="tsub">Encode or decode URL components</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card">
@@ -1284,7 +1315,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='hash'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🔑 Hash Generator</div><div class="tsub">Generate hashes from any text</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card">
@@ -1300,7 +1331,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='regex'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🔍 Regex Tester</div><div class="tsub">Test regular expressions with live matching</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card">
@@ -1324,7 +1355,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='markdown'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">✍️ Markdown to HTML</div><div class="tsub">Convert Markdown to clean HTML</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="cl">
@@ -1342,7 +1373,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='imgcompress'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">🗜️ Image Compressor</div><div class="tsub">Compress images in browser, no upload</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:560px">
@@ -1372,7 +1403,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- CONVERTERS -->
 <div v-if="page==='percent'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📐 Percentage Calculator</div><div class="tsub">Three types — instant results</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="pcards">
@@ -1384,7 +1415,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 </div>
 
 <div v-if="page==='unit'" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">📏 Unit Converter</div><div class="tsub">Length, weight, temperature and data size</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="pcards">
@@ -1403,7 +1434,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 
 <!-- PDF TOOLS -->
 <div v-if="['merge','img2pdf','split','word2pdf','pdf2word'].includes(page)" class="tp">
-  <button class="back" @click="goHome">← Back</button>
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
   <div class="ttl">{{pdfTitle}}</div><div class="tsub">Runs entirely in your browser — nothing uploaded</div>
   <div class="ad">📢 AdSense 728×90</div>
   <div class="card" style="max-width:560px">
@@ -1491,7 +1522,34 @@ createApp({setup(){
   const toggleTheme=()=>{dark.value=!dark.value;applyTheme();};
 
   // ── ROUTING ──
-  const page=ref('home'),search=ref(''),activeCat=ref('All');
+  const _ID_TO_URL={
+    emi:'/emi-calculator',homeloan:'/home-loan-eligibility',
+    sip:'/sip-calculator',compound:'/compound-interest-calculator',
+    fd:'/fd-rd-calculator',tax:'/income-tax-calculator',
+    salary:'/salary-ctc-calculator',gst:'/gst-calculator',
+    invoice:'/gst-invoice-generator',discount:'/discount-calculator',
+    roi:'/roi-calculator',gratuity:'/gratuity-calculator',
+    pf:'/epf-pf-calculator',tds:'/tds-calculator',
+    breakeven:'/break-even-calculator',freelance:'/freelance-rate-calculator',
+    percent:'/percentage-calculator',stampduty:'/stamp-duty-calculator',
+    rentvsbuy:'/rent-vs-buy-calculator',calorie:'/calorie-calculator',
+    bmi:'/bmi-calculator',age:'/age-calculator',
+    datediff:'/date-difference-calculator',tip:'/tip-calculator',
+    cgpa:'/cgpa-calculator',resume:'/resume-builder',
+    budget:'/budget-planner',proposal:'/business-proposal-generator',
+    letterhead:'/business-letterhead-generator',word:'/word-counter',
+    'case':'/case-converter','pass':'/password-generator',
+    qr:'/qr-code-generator',color:'/color-converter',
+    gradient:'/css-gradient-generator',palette:'/color-palette-generator',
+    json:'/json-formatter',base64:'/base64-encoder-decoder',
+    url:'/url-encoder-decoder',hash:'/hash-generator',
+    regex:'/regex-tester',markdown:'/markdown-to-html',
+    imgcompress:'/image-compressor',unit:'/unit-converter',
+    merge:'/pdf-merge',img2pdf:'/image-to-pdf',split:'/pdf-split',
+    word2pdf:'/word-to-pdf',pdf2word:'/pdf-to-word'
+  };
+  const toolUrl=id=>_ID_TO_URL[id]||'/';
+  const page=ref(window.INITIAL_PAGE||'home'),search=ref(''),activeCat=ref('All');
   const cats=['All','Finance','Real Estate','Health & Fitness','Career & Templates','Text & Dev','Converters','PDF Tools'];
 
   const allTools=[
@@ -1557,8 +1615,9 @@ createApp({setup(){
     filteredTools.value.forEach(t=>{if(!m[t.cat])m[t.cat]=[];m[t.cat].push(t);});
     return sectionOrder.filter(c=>m[c]).map(c=>({label:c,tools:m[c]}));
   });
-  const goHome=()=>{page.value='home';window.scrollTo(0,0);};
-  const open=id=>{page.value=id;window.scrollTo(0,0);};
+  const goHome=()=>{page.value='home';history.pushState({},'','/');window.scrollTo(0,0);};
+  const open=id=>{page.value=id;history.pushState({id},'',toolUrl(id));window.scrollTo(0,0);};
+  window.addEventListener('popstate',()=>{page.value=window._URL_TO_ID[location.pathname]||'home';});
   const pdfTitle=computed(()=>({merge:'🔗 Merge PDF',img2pdf:'🖼️ Image to PDF',split:'✂️ Split PDF',word2pdf:'📄 Word to PDF',pdf2word:'📝 PDF to Word'}[page.value]||''));
 
   // ── TEMPLATES ──
@@ -1872,7 +1931,7 @@ createApp({setup(){
 
   return{
     fmt,fmtS,cp,dark,toggleTheme,
-    page,search,activeCat,cats,filteredTools,visibleSections,goHome,open,pdfTitle,
+    page,search,activeCat,cats,filteredTools,visibleSections,goHome,open,toolUrl,pdfTitle,
     fmtDesc,fmtAt,templates,resumeTemplates,rv,downloadResume,
     bgt,bgtTotalIncome,bgtTotalExpense,bgtSavings,downloadBudget,
     prop,propTotal,downloadProposal,
