@@ -179,7 +179,10 @@ var _u={'/':null,
 '/regex-tester':'regex','/markdown-to-html':'markdown',
 '/image-compressor':'imgcompress','/unit-converter':'unit',
 '/pdf-merge':'merge','/image-to-pdf':'img2pdf','/pdf-split':'split',
-'/word-to-pdf':'word2pdf','/pdf-to-word':'pdf2word'};
+'/word-to-pdf':'word2pdf','/pdf-to-word':'pdf2word',
+'/image-resizer':'imgresize','/image-cropper':'imgcrop',
+'/pixel-art-maker':'imgpixel','/passport-photo':'passport',
+'/image-rotate':'imgrotate','/image-converter':'imgconvert'};
 window._URL_TO_ID=_u;
 window.INITIAL_PAGE=_u[location.pathname]||null;
 })();</script>
@@ -190,7 +193,7 @@ window.INITIAL_PAGE=_u[location.pathname]||null;
 <nav class="navbar">
   <a class="logo" href="/" @click.prevent="goHome">⚡ Toolify</a>
   <div style="display:flex;align-items:center;gap:10px">
-    <span style="font-size:11px;color:var(--sub)">60+ Tools</span>
+    <span style="font-size:11px;color:var(--sub)">70+ Tools</span>
     <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
   </div>
 </nav>
@@ -200,9 +203,9 @@ window.INITIAL_PAGE=_u[location.pathname]||null;
   <div class="hero">
     <h1>Free Online Tools</h1>
     <p>Calculators · Templates · PDF · Developer — All in your browser, no signup</p>
-    <input v-model="search" class="search" placeholder="🔍  Search 60+ tools..."/>
+    <input v-model="search" class="search" placeholder="🔍  Search 70+ tools..."/>
     <div class="stats">
-      <div><div class="stat-n">60+</div><div class="stat-l">Tools</div></div>
+      <div><div class="stat-n">70+</div><div class="stat-l">Tools</div></div>
       <div><div class="stat-n">100%</div><div class="stat-l">Free</div></div>
       <div><div class="stat-n">0</div><div class="stat-l">Signup</div></div>
       <div><div class="stat-n">0</div><div class="stat-l">Server</div></div>
@@ -1403,6 +1406,197 @@ window.INITIAL_PAGE=_u[location.pathname]||null;
   <div class="ad">📢 AdSense 336×280</div>
 </div>
 
+<!-- IMAGE RESIZER -->
+<div v-if="page==='imgresize'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">↔️ Image Resizer</div><div class="tsub">Resize images to any dimension — runs in your browser</div>
+  <div class="ad">📢 AdSense 728×90</div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>irLoad(e.dataTransfer.files[0])" @click="$refs.irInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">↔️</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="irInp" type="file" accept="image/*" hidden @change="e=>irLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="ir.src" style="margin-top:14px">
+      <div class="rg">
+        <div class="rb"><div class="rl">Original W</div><div class="rv">{{ir.origW}}px</div></div>
+        <div class="rb"><div class="rl">Original H</div><div class="rv">{{ir.origH}}px</div></div>
+      </div>
+      <div class="r2">
+        <div class="f"><label>Width (px)</label><input v-model.number="ir.w" type="number" min="1" @input="irAspect('w')"/></div>
+        <div class="f"><label>Height (px)</label><input v-model.number="ir.h" type="number" min="1" @input="irAspect('h')"/></div>
+      </div>
+      <div class="f" style="margin-bottom:10px"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" v-model="ir.lock" style="width:auto"/>Lock aspect ratio</label></div>
+      <div class="tabs" style="margin-bottom:10px">
+        <button class="tab" @click="ir.w=320;ir.h=320;ir.lock=false">320×320</button>
+        <button class="tab" @click="ir.w=800;ir.h=600;ir.lock=false">800×600</button>
+        <button class="tab" @click="ir.w=1280;ir.h=720;ir.lock=false">1280×720</button>
+        <button class="tab" @click="ir.w=1920;ir.h=1080;ir.lock=false">1920×1080</button>
+      </div>
+      <div class="f"><label>Output Format</label><select v-model="ir.fmt"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div>
+      <button class="btn" @click="irProcess">↔️ Resize & Download</button>
+    </div>
+  </div>
+  <div class="ad">📢 AdSense 336×280</div>
+</div>
+
+<!-- IMAGE CROPPER -->
+<div v-if="page==='imgcrop'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">✂️ Image Cropper</div><div class="tsub">Crop images to exact dimensions — runs in your browser</div>
+  <div class="ad">📢 AdSense 728×90</div>
+  <div class="card" style="max-width:620px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>cropLoad(e.dataTransfer.files[0])" @click="$refs.cropInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">✂️</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="cropInp" type="file" accept="image/*" hidden @change="e=>cropLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="icrop.src" style="margin-top:14px">
+      <div class="rg">
+        <div class="rb"><div class="rl">Image W×H</div><div class="rv">{{icrop.imgW}}×{{icrop.imgH}}</div></div>
+        <div class="rb"><div class="rl">Crop W×H</div><div class="rv ac">{{icrop.w}}×{{icrop.h}}</div></div>
+      </div>
+      <div class="tabs" style="margin-bottom:10px">
+        <button v-for="p in cropPresets" :key="p.l" class="tab" @click="applyCropPreset(p)">{{p.l}}</button>
+      </div>
+      <div class="r2">
+        <div class="f"><label>X offset (px)</label><input v-model.number="icrop.x" type="number" min="0" :max="icrop.imgW-1"/></div>
+        <div class="f"><label>Y offset (px)</label><input v-model.number="icrop.y" type="number" min="0" :max="icrop.imgH-1"/></div>
+      </div>
+      <div class="r2">
+        <div class="f"><label>Width (px)</label><input v-model.number="icrop.w" type="number" min="1" :max="icrop.imgW"/></div>
+        <div class="f"><label>Height (px)</label><input v-model.number="icrop.h" type="number" min="1" :max="icrop.imgH"/></div>
+      </div>
+      <img :src="icrop.src" style="width:100%;border-radius:7px;border:1px solid var(--border);margin-bottom:10px;display:block"/>
+      <div class="f"><label>Output Format</label><select v-model="icrop.fmt"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div>
+      <button class="btn" @click="cropProcess">✂️ Crop & Download</button>
+    </div>
+  </div>
+  <div class="ad">📢 AdSense 336×280</div>
+</div>
+
+<!-- PIXEL ART MAKER -->
+<div v-if="page==='imgpixel'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">🎮 Pixel Art Maker</div><div class="tsub">Pixelate any image for a retro look — runs in your browser</div>
+  <div class="ad">📢 AdSense 728×90</div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>pixelLoad(e.dataTransfer.files[0])" @click="$refs.pixelInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🎮</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="pixelInp" type="file" accept="image/*" hidden @change="e=>pixelLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="ipixel.src" style="margin-top:14px">
+      <div class="f"><label>Pixel Block Size: {{ipixel.size}}px</label><input v-model.number="ipixel.size" type="range" min="2" max="64" @input="pixelProcess"/></div>
+      <canvas id="pixel-canvas" style="width:100%;border-radius:7px;border:1px solid var(--border);margin-bottom:10px;display:block"></canvas>
+      <button class="btn" @click="pixelDownload">⬇ Download Pixel Art</button>
+    </div>
+  </div>
+  <div class="ad">📢 AdSense 336×280</div>
+</div>
+
+<!-- PASSPORT PHOTO MAKER -->
+<div v-if="page==='passport'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">🪪 Passport Photo Maker</div><div class="tsub">Create standard passport size photos — runs in your browser</div>
+  <div class="ad">📢 AdSense 728×90</div>
+  <div class="card" style="max-width:600px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>ppLoad(e.dataTransfer.files[0])" @click="$refs.ppInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">📸</div>
+      <div style="font-size:14px">Drop your photo or <span style="color:var(--p)">browse</span></div>
+      <input ref="ppInp" type="file" accept="image/*" hidden @change="e=>ppLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="ipassport.src" style="margin-top:14px">
+      <div class="f"><label>Passport Size Standard</label>
+        <select v-model="ipassport.preset" @change="ppPreview()">
+          <option value="india">India / UK / EU — 35×45 mm</option>
+          <option value="us">USA — 2×2 inch (51×51 mm)</option>
+          <option value="china">China — 33×48 mm</option>
+          <option value="square">Square — 1:1</option>
+        </select>
+      </div>
+      <div class="f"><label>Background Color</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input v-model="ipassport.bg" type="color" style="width:48px;height:34px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px" @input="ppPreview()"/>
+          <button class="btn-sm" @click="ipassport.bg='#ffffff';ppPreview()">White</button>
+          <button class="btn-sm" @click="ipassport.bg='#aac4e0';ppPreview()">Blue</button>
+          <button class="btn-sm" @click="ipassport.bg='#e8e8e8';ppPreview()">Gray</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Original</div>
+          <img :src="ipassport.src" style="max-width:100%;max-height:160px;border-radius:7px;border:1px solid var(--border)"/>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Preview</div>
+          <canvas id="pp-canvas" style="max-width:100%;max-height:160px;border-radius:7px;border:1px solid var(--border)"></canvas>
+        </div>
+      </div>
+      <button class="btn" @click="ppProcess">📸 Generate & Download</button>
+    </div>
+  </div>
+  <div class="ad">📢 AdSense 336×280</div>
+</div>
+
+<!-- IMAGE ROTATE & FLIP -->
+<div v-if="page==='imgrotate'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">🔄 Rotate & Flip Image</div><div class="tsub">Rotate or flip images — runs in your browser</div>
+  <div class="ad">📢 AdSense 728×90</div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>rotLoad(e.dataTransfer.files[0])" @click="$refs.rotInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🔄</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="rotInp" type="file" accept="image/*" hidden @change="e=>rotLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="irotate.src" style="margin-top:14px">
+      <div class="tabs">
+        <button class="tab" @click="rotApply('r90')">↻ 90° CW</button>
+        <button class="tab" @click="rotApply('l90')">↺ 90° CCW</button>
+        <button class="tab" @click="rotApply('r180')">↩ 180°</button>
+        <button class="tab" @click="rotApply('fh')">↔ Flip H</button>
+        <button class="tab" @click="rotApply('fv')">↕ Flip V</button>
+      </div>
+      <canvas id="rot-canvas" style="max-width:100%;max-height:320px;border-radius:7px;border:1px solid var(--border);display:block;margin:0 auto 10px"></canvas>
+      <div class="f"><label>Output Format</label><select v-model="irotate.fmt"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div>
+      <button class="btn" @click="rotDownload">⬇ Download</button>
+    </div>
+  </div>
+  <div class="ad">📢 AdSense 336×280</div>
+</div>
+
+<!-- IMAGE CONVERTER -->
+<div v-if="page==='imgconvert'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">🔀 Image Converter</div><div class="tsub">Convert between JPEG, PNG, and WebP — runs in your browser</div>
+  <div class="ad">📢 AdSense 728×90</div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>convLoad(e.dataTransfer.files[0])" @click="$refs.convInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🔀</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="convInp" type="file" accept="image/*" hidden @change="e=>convLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="iconvert.src" style="margin-top:14px">
+      <div class="rg">
+        <div class="rb"><div class="rl">File</div><div class="rv" style="font-size:12px;word-break:break-all">{{iconvert.origName}}</div></div>
+        <div class="rb"><div class="rl">Size</div><div class="rv">{{iconvert.origSize}}</div></div>
+      </div>
+      <div class="f"><label>Convert To</label>
+        <select v-model="iconvert.fmt">
+          <option value="image/jpeg">JPEG (.jpg)</option>
+          <option value="image/png">PNG (.png)</option>
+          <option value="image/webp">WebP (.webp)</option>
+        </select>
+      </div>
+      <div v-if="iconvert.fmt!=='image/png'" class="f"><label>Quality: {{iconvert.quality}}%</label><input v-model.number="iconvert.quality" type="range" min="10" max="100"/></div>
+      <img :src="iconvert.src" style="width:100%;border-radius:7px;border:1px solid var(--border);margin-bottom:10px"/>
+      <button class="btn" @click="convProcess">🔀 Convert & Download</button>
+    </div>
+  </div>
+  <div class="ad">📢 AdSense 336×280</div>
+</div>
+
 <!-- CONVERTERS -->
 <div v-if="page==='percent'" class="tp">
   <a class="back" href="/" @click.prevent="goHome">← Back</a>
@@ -1548,11 +1742,14 @@ createApp({setup(){
     regex:'/regex-tester',markdown:'/markdown-to-html',
     imgcompress:'/image-compressor',unit:'/unit-converter',
     merge:'/pdf-merge',img2pdf:'/image-to-pdf',split:'/pdf-split',
-    word2pdf:'/word-to-pdf',pdf2word:'/pdf-to-word'
+    word2pdf:'/word-to-pdf',pdf2word:'/pdf-to-word',
+    imgresize:'/image-resizer',imgcrop:'/image-cropper',
+    imgpixel:'/pixel-art-maker',passport:'/passport-photo',
+    imgrotate:'/image-rotate',imgconvert:'/image-converter'
   };
   const toolUrl=id=>_ID_TO_URL[id]||'/';
   const page=ref(window.INITIAL_PAGE||'home'),search=ref(''),activeCat=ref('All');
-  const cats=['All','Finance','Real Estate','Health & Fitness','Career & Templates','Text & Dev','Converters','PDF Tools'];
+  const cats=['All','Finance','Real Estate','Health & Fitness','Career & Templates','Text & Dev','Converters','PDF Tools','Image Tools'];
 
   const allTools=[
     {id:'emi',       icon:'🏦',name:'EMI Calculator',          desc:'Monthly EMI & amortization',          color:'rgba(124,111,255,.2)',cat:'Finance',             popular:true},
@@ -1605,13 +1802,19 @@ createApp({setup(){
     {id:'split',     icon:'✂️',name:'Split PDF',               desc:'Extract pages from PDF',             color:'rgba(94,240,200,.15)', cat:'PDF Tools'},
     {id:'word2pdf',  icon:'📄',name:'Word to PDF',             desc:'Convert .docx to PDF',               color:'rgba(255,183,77,.18)', cat:'PDF Tools',            hot:true},
     {id:'pdf2word',  icon:'📝',name:'PDF to Word',             desc:'Extract PDF text as .docx',          color:'rgba(124,111,255,.2)', cat:'PDF Tools',            hot:true},
+    {id:'imgresize', icon:'↔️', name:'Image Resizer',         desc:'Resize to any width & height',       color:'rgba(124,111,255,.2)', cat:'Image Tools',          hot:true},
+    {id:'imgcrop',   icon:'✂️', name:'Image Cropper',         desc:'Crop with presets or custom size',   color:'rgba(94,240,200,.15)', cat:'Image Tools',          hot:true},
+    {id:'imgpixel',  icon:'🎮', name:'Pixel Art Maker',       desc:'Pixelate images for retro look',     color:'rgba(255,183,77,.18)', cat:'Image Tools'},
+    {id:'passport',  icon:'🪪', name:'Passport Photo',        desc:'Standard passport size maker',       color:'rgba(255,100,100,.18)',cat:'Image Tools',          popular:true},
+    {id:'imgrotate', icon:'🔄', name:'Rotate & Flip',         desc:'Rotate 90°/180° or flip image',      color:'rgba(94,240,200,.15)', cat:'Image Tools'},
+    {id:'imgconvert',icon:'🔀', name:'Image Converter',       desc:'Convert JPG ↔ PNG ↔ WebP',          color:'rgba(124,111,255,.2)', cat:'Image Tools'},
   ];
 
   const filteredTools=computed(()=>allTools.filter(t=>
     (activeCat.value==='All'||t.cat===activeCat.value)&&
     (!search.value||t.name.toLowerCase().includes(search.value.toLowerCase())||t.desc.toLowerCase().includes(search.value.toLowerCase()))
   ));
-  const sectionOrder=['Finance','Real Estate','Health & Fitness','Career & Templates','Text & Dev','Converters','PDF Tools'];
+  const sectionOrder=['Finance','Real Estate','Health & Fitness','Career & Templates','Text & Dev','Converters','PDF Tools','Image Tools'];
   const visibleSections=computed(()=>{
     const m={};
     filteredTools.value.forEach(t=>{if(!m[t.cat])m[t.cat]=[];m[t.cat].push(t);});
@@ -1903,6 +2106,49 @@ createApp({setup(){
   const loadImg=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{ic.value.original=e.target.result;ic.value.origSize=fmtB(file.size);const img=new Image();img.onload=()=>{ic.value.w=img.width;ic.value.h=img.height;compressImg();};img.src=e.target.result;};r.readAsDataURL(file);};
   const compressImg=()=>{if(!ic.value.original)return;const img=new Image();img.onload=()=>{const canvas=document.querySelector('canvas');if(!canvas)return;canvas.width=img.width;canvas.height=img.height;canvas.getContext('2d').drawImage(img,0,0);const out=canvas.toDataURL('image/jpeg',ic.value.quality/100);ic.value.compressed=out;const ol=ic.value.original.length*.75,nl=out.length*.75;ic.value.newSize=fmtB(nl);ic.value.saved=Math.max(0,Math.round((1-nl/ol)*100));};img.src=ic.value.original;};
 
+  // ── IMAGE TOOLS ──
+  const loadImgSrc=src=>new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.src=src;});
+  const extFromFmt=fmt=>(fmt==='image/png'?'.png':fmt==='image/webp'?'.webp':'.jpg');
+  const dlCanvas=(canvas,fmt,quality,name)=>{const a=document.createElement('a');a.href=canvas.toDataURL(fmt,quality/100);a.download=name+extFromFmt(fmt);a.click();};
+
+  // Image Resizer
+  const ir=ref({src:null,origW:0,origH:0,w:0,h:0,lock:true,fmt:'image/jpeg'});
+  const irLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{ir.value={src:e.target.result,origW:img.width,origH:img.height,w:img.width,h:img.height,lock:true,fmt:'image/jpeg'};};img.src=e.target.result;};r.readAsDataURL(file);};
+  const irAspect=changed=>{if(!ir.value.lock||!ir.value.origW)return;const ratio=ir.value.origW/ir.value.origH;if(changed==='w')ir.value.h=Math.round(ir.value.w/ratio);else ir.value.w=Math.round(ir.value.h*ratio);};
+  const irProcess=async()=>{const v=ir.value;if(!v.src)return;const img=await loadImgSrc(v.src);const c=document.createElement('canvas');c.width=v.w;c.height=v.h;c.getContext('2d').drawImage(img,0,0,v.w,v.h);dlCanvas(c,v.fmt,92,'resized');};
+
+  // Image Cropper
+  const cropPresets=[{l:'Square 1:1',r:1},{l:'4:3',r:4/3},{l:'16:9',r:16/9},{l:'3:4',r:3/4}];
+  const icrop=ref({src:null,imgW:0,imgH:0,x:0,y:0,w:0,h:0,fmt:'image/jpeg'});
+  const cropLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{icrop.value={src:e.target.result,imgW:img.width,imgH:img.height,x:0,y:0,w:img.width,h:img.height,fmt:'image/jpeg'};};img.src=e.target.result;};r.readAsDataURL(file);};
+  const applyCropPreset=p=>{const{imgW,imgH}=icrop.value;let w=imgW,h=Math.round(w/p.r);if(h>imgH){h=imgH;w=Math.round(h*p.r);}icrop.value.w=w;icrop.value.h=h;icrop.value.x=Math.round((imgW-w)/2);icrop.value.y=Math.round((imgH-h)/2);};
+  const cropProcess=async()=>{const v=icrop.value;if(!v.src)return;const img=await loadImgSrc(v.src);const c=document.createElement('canvas');c.width=v.w;c.height=v.h;c.getContext('2d').drawImage(img,v.x,v.y,v.w,v.h,0,0,v.w,v.h);dlCanvas(c,v.fmt,92,'cropped');};
+
+  // Pixel Art Maker
+  const ipixel=ref({src:null,size:16});
+  const pixelLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{ipixel.value={src:e.target.result,size:16};Vue.nextTick(pixelProcess);};r.readAsDataURL(file);};
+  const pixelProcess=async()=>{const v=ipixel.value;if(!v.src)return;const canvas=document.getElementById('pixel-canvas');if(!canvas)return;const img=await loadImgSrc(v.src);const w=img.width,h=img.height,s=v.size;canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;const tmp=document.createElement('canvas');tmp.width=Math.ceil(w/s);tmp.height=Math.ceil(h/s);tmp.getContext('2d').drawImage(img,0,0,tmp.width,tmp.height);ctx.drawImage(tmp,0,0,tmp.width,tmp.height,0,0,w,h);};
+  const pixelDownload=()=>{const c=document.getElementById('pixel-canvas');if(c)dlCanvas(c,'image/png',100,'pixel-art');};
+
+  // Passport Photo Maker
+  const ppPresets={india:{w:413,h:531},us:{w:600,h:600},china:{w:390,h:567},square:{w:300,h:300}};
+  const ipassport=ref({src:null,preset:'india',bg:'#ffffff'});
+  const ppLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{ipassport.value={src:e.target.result,preset:'india',bg:'#ffffff'};Vue.nextTick(ppPreview);};r.readAsDataURL(file);};
+  const ppPreview=async()=>{const v=ipassport.value;if(!v.src)return;const canvas=document.getElementById('pp-canvas');if(!canvas)return;const{w,h}=ppPresets[v.preset]||ppPresets.india;canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.fillStyle=v.bg;ctx.fillRect(0,0,w,h);const img=await loadImgSrc(v.src);const scale=Math.max(w/img.width,h/img.height);const sw=img.width*scale,sh=img.height*scale;ctx.drawImage(img,(w-sw)/2,(h-sh)/2,sw,sh);};
+  const ppProcess=async()=>{await ppPreview();const c=document.getElementById('pp-canvas');if(c)dlCanvas(c,'image/jpeg',95,'passport-photo');};
+
+  // Image Rotate & Flip
+  const irotate=ref({src:null,fmt:'image/jpeg',angle:0,flipH:false,flipV:false});
+  const rotLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{irotate.value={src:e.target.result,fmt:'image/jpeg',angle:0,flipH:false,flipV:false};Vue.nextTick(rotRender);};r.readAsDataURL(file);};
+  const rotRender=async()=>{const v=irotate.value;if(!v.src)return;const canvas=document.getElementById('rot-canvas');if(!canvas)return;const img=await loadImgSrc(v.src);const deg=(v.angle%360+360)%360,rad=deg*Math.PI/180;const ow=img.width,oh=img.height;const sw=(deg===90||deg===270)?oh:ow,sh=(deg===90||deg===270)?ow:oh;canvas.width=sw;canvas.height=sh;const ctx=canvas.getContext('2d');ctx.save();ctx.translate(sw/2,sh/2);ctx.rotate(rad);ctx.scale(v.flipH?-1:1,v.flipV?-1:1);ctx.drawImage(img,-ow/2,-oh/2);ctx.restore();};
+  const rotApply=op=>{const v=irotate.value;if(op==='r90')v.angle=(v.angle+90)%360;else if(op==='l90')v.angle=(v.angle+270)%360;else if(op==='r180')v.angle=(v.angle+180)%360;else if(op==='fh')v.flipH=!v.flipH;else if(op==='fv')v.flipV=!v.flipV;Vue.nextTick(rotRender);};
+  const rotDownload=()=>{const c=document.getElementById('rot-canvas');if(c)dlCanvas(c,irotate.value.fmt,92,'rotated');};
+
+  // Image Converter
+  const iconvert=ref({src:null,origName:'',origSize:'',fmt:'image/jpeg',quality:90});
+  const convLoad=file=>{if(!file)return;iconvert.value.origName=file.name;iconvert.value.origSize=fmtB(file.size);const r=new FileReader();r.onload=e=>{iconvert.value.src=e.target.result;};r.readAsDataURL(file);};
+  const convProcess=async()=>{const v=iconvert.value;if(!v.src)return;const img=await loadImgSrc(v.src);const c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);dlCanvas(c,v.fmt,v.quality,'converted');};
+
   // ── UNIT CONVERTER ──
   const unitConvs=[
     {id:'len', icon:'📏',label:'Length',     type:'factor',units:[{k:'mm',l:'mm',m:0.001},{k:'cm',l:'cm',m:0.01},{k:'m',l:'Meter',m:1},{k:'km',l:'km',m:1000},{k:'in',l:'Inch',m:0.0254},{k:'ft',l:'Foot',m:0.3048},{k:'mi',l:'Mile',m:1609.344}]},
@@ -1949,6 +2195,12 @@ createApp({setup(){
     clr,clrRgb,clrHsl,grad,gradientCss,pal,palColors,
     jf,processJson,b64,processB64,ue,ueResult,hsh,hashResults,
     rx,rxMatches,rxErr,md,mdHtml,ic,loadImg,compressImg,
+    ir,irLoad,irAspect,irProcess,
+    icrop,cropLoad,cropPresets,applyCropPreset,cropProcess,
+    ipixel,pixelLoad,pixelProcess,pixelDownload,
+    ipassport,ppLoad,ppPreview,ppProcess,
+    irotate,rotLoad,rotApply,rotDownload,
+    iconvert,convLoad,convProcess,
     uc,unitConvs,doConvert,
     pdf,addPdfs,addImgs,mergePdfs,imgToPdf,splitPdf,
     w2p,loadDocx,convertW2P,p2w,loadPdfForWord,convertP2W,
