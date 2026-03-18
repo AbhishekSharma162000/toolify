@@ -8,9 +8,12 @@
 <link rel="canonical" href="https://toolzyo.shop/">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2214953595126200"
      crossorigin="anonymous"></script>
+     
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;transition:background .25s,color .25s}
@@ -186,7 +189,8 @@ var _u={'/':null,
 '/image-rotate':'imgrotate','/image-converter':'imgconvert',
 '/image-ocr':'imgocr',
 '/pdf-watermark':'pdfwatermark','/pdf-page-numbers':'pdfpagenum',
-'/pdf-rotate-pages':'pdfrotatepgs'};
+'/pdf-rotate-pages':'pdfrotatepgs',
+'/pdf-editor':'pdfedit','/word-editor':'wordedit'};
 window._URL_TO_ID=_u;
 window.INITIAL_PAGE=_u[location.pathname]||null;
 })();</script>
@@ -197,7 +201,7 @@ window.INITIAL_PAGE=_u[location.pathname]||null;
 <nav class="navbar">
   <a class="logo" href="/" @click.prevent="goHome">⚡ Toolify</a>
   <div style="display:flex;align-items:center;gap:10px">
-    <span style="font-size:11px;color:var(--sub)">75+ Tools</span>
+    <span style="font-size:11px;color:var(--sub)">80+ Tools</span>
     <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
   </div>
 </nav>
@@ -1675,6 +1679,150 @@ window.INITIAL_PAGE=_u[location.pathname]||null;
   <div class="ad">📢 AdSense 336×280</div>
 </div>
 
+<!-- PDF LIVE EDITOR -->
+<div v-if="page==='pdfedit'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">✏️ PDF Editor</div><div class="tsub">Click any text on the PDF to select it, then edit in the panel — runs 100% in your browser</div>
+  <div class="ad">📢 AdSense 728×90</div>
+  <div v-if="!pdfed.loaded" class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>pdfedLoad(e.dataTransfer.files[0])" @click="!pdfed.loading&&$refs.pdfedInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">{{pdfed.loading?'⏳':'✏️'}}</div>
+      <div v-if="pdfed.loading" style="font-size:14px">Loading PDF, extracting text…</div>
+      <div v-else style="font-size:14px">Drop PDF or <span style="color:var(--p)">browse</span></div>
+      <input ref="pdfedInp" type="file" accept=".pdf" hidden @change="e=>pdfedLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="pdfed.err" class="err">{{pdfed.err}}</div>
+  </div>
+  <div v-if="pdfed.loaded" style="max-width:1100px;margin:0 auto">
+    <!-- Top toolbar: page nav + open/save -->
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;background:var(--card);padding:8px 12px;border-radius:10px;border:1px solid var(--border);flex-wrap:wrap">
+      <button class="btn-sm" :disabled="pdfed.pageNum<=1" @click="pdfedChangePage(-1)" style="width:auto">◀ Prev</button>
+      <span style="font-size:12px;color:var(--muted);white-space:nowrap">Page {{pdfed.pageNum}} / {{pdfed.totalPages}}</span>
+      <button class="btn-sm" :disabled="pdfed.pageNum>=pdfed.totalPages" @click="pdfedChangePage(1)" style="width:auto">Next ▶</button>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn-o" @click="pdfedReset" style="width:auto;padding:6px 14px;font-size:12px">📂 Open PDF</button>
+        <button class="btn" @click="pdfedSave" style="width:auto;padding:7px 18px">⬇ Save PDF</button>
+      </div>
+    </div>
+    <div v-if="pdfed.err" class="err" style="margin-bottom:8px">{{pdfed.err}}</div>
+    <!-- Two-panel: PDF canvas | Edit panel -->
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <!-- PDF canvas with invisible click-detection overlay -->
+      <div style="flex:1;min-width:0;position:relative;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#e8e8e8">
+        <canvas id="pdfed-canvas" style="display:block;width:100%;height:auto"></canvas>
+        <!-- Transparent hit-test divs — selection outline only, no text content -->
+        <div style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden">
+          <div :style="{position:'absolute',top:0,left:0,width:pdfed.canvasW+'px',height:pdfed.canvasH+'px',transform:'scale('+pdfed.overlayScale+')',transformOrigin:'top left'}">
+            <div v-for="(item,i) in pdfed.items" :key="pdfed.pageNum+'_'+i"
+              :style="{position:'absolute',left:(item.xPx-2)+'px',top:(item.yPx-2)+'px',width:(item.width+8)+'px',height:(item.fontSize+8)+'px',cursor:'pointer',borderRadius:'3px',outline:pdfed.selectedIdx===i?'2px solid #7c6fff':'none',outlineOffset:'1px',background:pdfed.selectedIdx===i?'rgba(124,111,255,0.12)':'transparent',boxSizing:'border-box'}"
+              @click.stop="pdfedSelect(i)">
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Edit panel -->
+      <div style="width:260px;min-width:260px;flex-shrink:0;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;position:sticky;top:12px">
+        <div v-if="pdfed.selectedIdx<0" style="text-align:center;color:var(--muted);padding:40px 0 36px;font-size:13px;line-height:1.6">
+          👆<br>Click any text on the PDF to select and edit it
+        </div>
+        <template v-else>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Edit Text</div>
+          <!-- Formatting bar -->
+          <div style="display:flex;gap:4px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+            <button class="btn-sm" @click="pdfedToggleFmt('bold')"
+              :style="{width:'auto',fontWeight:'bold',outline:pdfed.items[pdfed.selectedIdx]?.bold?'2px solid var(--p)':'none'}" title="Bold">B</button>
+            <button class="btn-sm" @click="pdfedToggleFmt('italic')"
+              :style="{width:'auto',fontStyle:'italic',outline:pdfed.items[pdfed.selectedIdx]?.italic?'2px solid var(--p)':'none'}" title="Italic">I</button>
+            <input type="number" min="6" max="144"
+              :value="pdfed.items[pdfed.selectedIdx]?.sizeOvr||Math.round(pdfed.items[pdfed.selectedIdx]?.pdfFontSize||12)"
+              @change="e=>pdfedSetSize(+e.target.value)"
+              style="width:52px;font-size:12px;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--fg)" title="Font size"/>
+            <input type="color"
+              :value="pdfed.items[pdfed.selectedIdx]?.color||'#000000'"
+              @input="e=>pdfedSetColor(e.target.value)"
+              style="height:28px;padding:2px 3px;width:34px;border-radius:6px;cursor:pointer" title="Color"/>
+          </div>
+          <!-- Editable textarea -->
+          <textarea
+            :value="pdfed.items[pdfed.selectedIdx]?.editStr!==null?pdfed.items[pdfed.selectedIdx]?.editStr:pdfed.items[pdfed.selectedIdx]?.origStr"
+            @input="e=>pdfedTextInput(e.target.value)"
+            style="width:100%;min-height:80px;font-size:13px;padding:8px;border-radius:7px;border:1px solid var(--border);background:var(--bg2);color:var(--fg);resize:vertical;box-sizing:border-box;font-family:Helvetica,Arial,sans-serif;line-height:1.4"
+            placeholder="Edit text…"></textarea>
+          <!-- Apply / Reset -->
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button class="btn" @click="pdfedApplyEdit" style="flex:1;padding:7px 0;font-size:12px">✓ Apply</button>
+            <button class="btn-o" @click="pdfedResetItem" style="flex:1;padding:7px 0;font-size:12px">↩ Reset</button>
+          </div>
+        </template>
+        <!-- Changes count -->
+        <div v-if="pdfedModifiedCount>0" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)">
+          ✏️ {{pdfedModifiedCount}} edit(s) · <span style="color:var(--p);cursor:pointer;font-weight:600" @click="pdfedSave">Save PDF ↓</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--muted)">Click any text on the PDF to select it · edit in the panel · Apply to preview · Save PDF to download</div>
+    <div v-if="pdfed.done" class="ok" style="margin-top:10px">✓ Edited PDF downloaded!</div>
+  </div>
+  <div class="ad">📢 AdSense 336×280</div>
+</div>
+
+<!-- WORD EDITOR -->
+<div v-if="page==='wordedit'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">📝 Word Editor</div><div class="tsub">Open .docx files, edit rich text, export back to Word or PDF</div>
+  <div class="ad">📢 AdSense 728×90</div>
+  <div v-if="we.html===null" class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>weLoad(e.dataTransfer.files[0])" @click="$refs.weInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">📝</div>
+      <div style="font-size:14px">Drop .docx or <span style="color:var(--p)">browse</span></div>
+      <input ref="weInp" type="file" accept=".docx" hidden @change="e=>weLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="we.loading" style="text-align:center;color:var(--muted);margin-top:12px;font-size:13px">Loading…</div>
+    <div v-if="we.err" class="err">{{we.err}}</div>
+    <button class="btn-o" @click="weNew" style="margin-top:14px;width:auto;padding:8px 20px">+ New blank document</button>
+  </div>
+  <div v-if="we.html!==null" style="max-width:900px;margin:0 auto">
+    <!-- Toolbar -->
+    <div style="display:flex;gap:5px;align-items:center;margin-bottom:10px;flex-wrap:wrap;background:var(--card);padding:8px 12px;border-radius:10px;border:1px solid var(--border)">
+      <button class="btn-sm" style="width:auto;font-weight:700" @mousedown.prevent="weExec('bold')" title="Bold">B</button>
+      <button class="btn-sm" style="width:auto;font-style:italic" @mousedown.prevent="weExec('italic')" title="Italic">I</button>
+      <button class="btn-sm" style="width:auto;text-decoration:underline" @mousedown.prevent="weExec('underline')" title="Underline">U</button>
+      <button class="btn-sm" style="width:auto;text-decoration:line-through" @mousedown.prevent="weExec('strikeThrough')" title="Strike">S</button>
+      <div style="width:1px;height:20px;background:var(--border)"></div>
+      <select @mousedown.stop @change="e=>{weExec('formatBlock',e.target.value);e.target.value=''}" style="font-size:12px;padding:4px 6px;border-radius:6px;background:var(--bg2);border:1px solid var(--border);color:var(--fg)">
+        <option value="">Style…</option>
+        <option value="p">Paragraph</option>
+        <option value="h1">Heading 1</option>
+        <option value="h2">Heading 2</option>
+        <option value="h3">Heading 3</option>
+      </select>
+      <div style="width:1px;height:20px;background:var(--border)"></div>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('justifyLeft')" title="Align left">⬅</button>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('justifyCenter')" title="Center">≡</button>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('justifyRight')" title="Align right">➡</button>
+      <div style="width:1px;height:20px;background:var(--border)"></div>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('insertUnorderedList')" title="Bullet list">• List</button>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('insertOrderedList')" title="Numbered list">1. List</button>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn-o" @click="we.html=null" style="width:auto;padding:6px 12px;font-size:12px">Open…</button>
+        <button class="btn-sm" @click="weExportDocx" style="width:auto">⬇ .docx</button>
+        <button class="btn-sm" @click="weExportPdf" style="width:auto">⬇ PDF</button>
+      </div>
+    </div>
+    <!-- Document area (A4-like white page) -->
+    <div id="word-editor" contenteditable="true"
+      @input="we.dirty=true"
+      style="background:#fff;color:#1a1a1a;padding:52px 72px;min-height:600px;border-radius:10px;border:1px solid var(--border);font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.9;outline:none;box-shadow:0 4px 24px rgba(0,0,0,.12)">
+    </div>
+    <div style="margin-top:8px;display:flex;justify-content:space-between">
+      <span style="font-size:11px;color:var(--muted)">{{we.dirty?'● Unsaved changes':'Saved'}}</span>
+      <span style="font-size:11px;color:var(--muted)">Select text then click a toolbar button to format</span>
+    </div>
+    <div v-if="we.done" class="ok" style="margin-top:8px">✓ Downloaded!</div>
+  </div>
+  <div class="ad">📢 AdSense 336×280</div>
+</div>
+
 <!-- PDF WATERMARK -->
 <div v-if="page==='pdfwatermark'" class="tp">
   <a class="back" href="/" @click.prevent="goHome">← Back</a>
@@ -1844,7 +1992,7 @@ window.INITIAL_PAGE=_u[location.pathname]||null;
 </div><!-- #app -->
 <script>
 const {createApp,ref,computed}=Vue;
-createApp({setup(){
+const _vapp=createApp({setup(){
 
   // ── HELPERS ──
   const fmt=n=>Number(n).toLocaleString('en-IN');
@@ -1888,7 +2036,8 @@ createApp({setup(){
     imgpixel:'/pixel-art-maker',passport:'/passport-photo',
     imgrotate:'/image-rotate',imgconvert:'/image-converter',
     imgocr:'/image-ocr',
-    pdfwatermark:'/pdf-watermark',pdfpagenum:'/pdf-page-numbers',pdfrotatepgs:'/pdf-rotate-pages'
+    pdfwatermark:'/pdf-watermark',pdfpagenum:'/pdf-page-numbers',pdfrotatepgs:'/pdf-rotate-pages',
+    pdfedit:'/pdf-editor',wordedit:'/word-editor'
   };
   const toolUrl=id=>_ID_TO_URL[id]||'/';
   const page=ref(window.INITIAL_PAGE||'home'),search=ref(''),activeCat=ref('All');
@@ -1955,6 +2104,8 @@ createApp({setup(){
     {id:'pdfwatermark',icon:'💧',name:'PDF Watermark',       desc:'Stamp text watermark on every page', color:'rgba(94,240,200,.15)', cat:'PDF Tools'},
     {id:'pdfpagenum', icon:'🔢',name:'PDF Page Numbers',     desc:'Add page numbers to your PDF',       color:'rgba(255,183,77,.18)', cat:'PDF Tools'},
     {id:'pdfrotatepgs',icon:'🔁',name:'Rotate PDF Pages',   desc:'Rotate all or specific pages',       color:'rgba(124,111,255,.2)', cat:'PDF Tools'},
+    {id:'pdfedit',     icon:'✏️',name:'PDF Editor',         desc:'View & annotate PDF with text',      color:'rgba(255,100,100,.18)',cat:'PDF Tools',            hot:true},
+    {id:'wordedit',    icon:'📝',name:'Word Editor',         desc:'Edit .docx files in your browser',   color:'rgba(94,240,200,.15)', cat:'PDF Tools',            hot:true},
   ];
 
   const filteredTools=computed(()=>allTools.filter(t=>
@@ -1970,6 +2121,7 @@ createApp({setup(){
   const goHome=()=>{page.value='home';history.pushState({},'','/');window.scrollTo(0,0);};
   const open=id=>{page.value=id;history.pushState({id},'',toolUrl(id));window.scrollTo(0,0);};
   window.addEventListener('popstate',()=>{page.value=window._URL_TO_ID[location.pathname]||'home';});
+  window.addEventListener('resize',()=>{try{if(pdfed.value.loaded)pdfedUpdateScale();}catch(e){}});
   const pdfTitle=computed(()=>({merge:'🔗 Merge PDF',img2pdf:'🖼️ Image to PDF',split:'✂️ Split PDF',word2pdf:'📄 Word to PDF',pdf2word:'📝 PDF to Word'}[page.value]||''));
 
   // ── TEMPLATES ──
@@ -2302,6 +2454,41 @@ createApp({setup(){
   const runOcr=async()=>{ocr.value.loading=true;ocr.value.err='';ocr.value.text='';ocr.value.progress='Loading...';try{const result=await Tesseract.recognize(ocr.value.src,ocr.value.lang,{logger:m=>{if(m.status)ocr.value.progress=m.status+(m.progress?' '+Math.round(m.progress*100)+'%':'');}});ocr.value.text=result.data.text;}catch(e){ocr.value.err='Error: '+e.message;}ocr.value.loading=false;};
   const downloadOcrText=()=>{const a=document.createElement('a');a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(ocr.value.text);a.download='extracted-text.txt';a.click();};
 
+  // ── PDF LIVE EDITOR ──
+  // PDF.js objects use private class fields that break inside Vue Proxy — store outside ref
+  let _pdfDoc=null,_pdfAllItems={};
+  const PDFJS_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+  const pdfed=ref({loaded:false,file:null,pageNum:1,totalPages:0,items:[],canvasW:0,canvasH:0,overlayScale:1,selectedIdx:-1,loading:false,err:'',done:false});
+  const pdfedModifiedCount=computed(()=>{let n=0;for(const items of Object.values(_pdfAllItems))for(const it of items)if(it.editStr!==null)n++;return n;});
+  const pdfedReset=()=>{_pdfDoc=null;_pdfAllItems={};Object.assign(pdfed.value,{loaded:false,file:null,pageNum:1,totalPages:0,items:[],canvasW:0,canvasH:0,overlayScale:1,selectedIdx:-1,loading:false,err:'',done:false});};
+  const pdfedExtractAll=async()=>{_pdfAllItems={};for(let p=1;p<=pdfed.value.totalPages;p++){const pg=await _pdfDoc.getPage(p);const vp=pg.getViewport({scale:1.5});const tc=await pg.getTextContent();_pdfAllItems[p]=tc.items.filter(it=>it.str&&it.str.trim()).map(it=>{const[xPx,yPx]=vp.convertToViewportPoint(it.transform[4],it.transform[5]);const fs=Math.max(Math.abs(it.transform[0])*1.5,6);return{origStr:it.str,editStr:null,xPx,yPx:yPx-fs,fontSize:fs,width:Math.max((it.width||0)*1.5,8),pdfX:it.transform[4],pdfY:it.transform[5],pdfFontSize:Math.abs(it.transform[0])||10,pdfWidth:it.width||0,bold:false,italic:false,color:'#000000',sizeOvr:null};});}};
+  const pdfedUpdateScale=()=>requestAnimationFrame(()=>{const c=document.getElementById('pdfed-canvas');if(c&&pdfed.value.canvasW)pdfed.value.overlayScale=c.clientWidth/pdfed.value.canvasW;});
+  const pdfedLoad=async file=>{if(!file||file.type!=='application/pdf')return;pdfed.value.err='';pdfed.value.loading=true;_pdfDoc=null;_pdfAllItems={};pdfed.value.loaded=false;try{pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER;_pdfDoc=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;pdfed.value.file=file;pdfed.value.totalPages=_pdfDoc.numPages;pdfed.value.pageNum=1;await pdfedExtractAll();pdfed.value.loaded=true;await Vue.nextTick();await pdfedRender();}catch(e){pdfed.value.err='Error: '+e.message;}pdfed.value.loading=false;};
+  // Draw all edited items directly onto the canvas — no overlay divs needed
+  const pdfedRenderEdits=()=>{const c=document.getElementById('pdfed-canvas');if(!c)return;const ctx=c.getContext('2d');ctx.save();for(const item of(pdfed.value.items||[])){if(item.editStr===null)continue;const fs=(item.sizeOvr||item.pdfFontSize)*1.5;const wt=item.bold?'bold':'normal',st=item.italic?'italic':'normal';ctx.font=`${st} ${wt} ${fs}px Helvetica,Arial,sans-serif`;const tw=ctx.measureText(item.editStr).width;ctx.fillStyle='#ffffff';ctx.fillRect(item.xPx-2,item.yPx-2,Math.max(item.width,tw)+8,fs+8);ctx.fillStyle=item.color||'#000000';ctx.textBaseline='top';ctx.fillText(item.editStr,item.xPx,item.yPx);}ctx.restore();};
+  const pdfedRender=async()=>{const c=document.getElementById('pdfed-canvas');if(!c||!_pdfDoc)return;try{const pg=await _pdfDoc.getPage(pdfed.value.pageNum);const vp=pg.getViewport({scale:1.5});pdfed.value.canvasW=vp.width;pdfed.value.canvasH=vp.height;c.width=vp.width;c.height=vp.height;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:ctx,viewport:vp}).promise;pdfed.value.items=_pdfAllItems[pdfed.value.pageNum]||[];pdfedUpdateScale();pdfedRenderEdits();}catch(e){pdfed.value.err='Render error: '+e.message;}};
+  const pdfedChangePage=async d=>{pdfed.value.pageNum+=d;pdfed.value.selectedIdx=-1;await pdfedRender();};
+  // Select a text item — loads it into the edit panel
+  const pdfedSelect=(i)=>{pdfed.value.selectedIdx=i;};
+  // Live update from textarea input — redraws edits on canvas without full re-render
+  const pdfedTextInput=(val)=>{const i=pdfed.value.selectedIdx;if(i<0)return;pdfed.value.items[i].editStr=val===pdfed.value.items[i].origStr?null:val;pdfedRenderEdits();};
+  // Apply button — triggers clean full re-render with current edits baked in
+  const pdfedApplyEdit=async()=>{await pdfedRender();};
+  // Reset selected item back to original
+  const pdfedResetItem=async()=>{const i=pdfed.value.selectedIdx;if(i<0)return;const it=pdfed.value.items[i];it.editStr=null;it.bold=false;it.italic=false;it.color='#000000';it.sizeOvr=null;await pdfedRender();};
+  const pdfedToggleFmt=type=>{const i=pdfed.value.selectedIdx;if(i<0)return;const it=pdfed.value.items[i];it[type]=!it[type];if(it.editStr===null)it.editStr=it.origStr;pdfedRenderEdits();};
+  const pdfedSetSize=size=>{const i=pdfed.value.selectedIdx;if(i<0||!size)return;const it=pdfed.value.items[i];it.sizeOvr=size;if(it.editStr===null)it.editStr=it.origStr;pdfedRenderEdits();};
+  const pdfedSetColor=color=>{const i=pdfed.value.selectedIdx;if(i<0)return;const it=pdfed.value.items[i];it.color=color;if(it.editStr===null)it.editStr=it.origStr;pdfedRenderEdits();};
+  const pdfedSave=async()=>{if(!pdfed.value.file)return;pdfed.value.done=false;pdfed.value.err='';try{const{PDFDocument,StandardFonts,rgb}=PDFLib;const doc=await PDFDocument.load(await pdfed.value.file.arrayBuffer());const fNormal=await doc.embedFont(StandardFonts.Helvetica);const fBold=await doc.embedFont(StandardFonts.HelveticaBold);const fItalic=await doc.embedFont(StandardFonts.HelveticaOblique);const fBoldItalic=await doc.embedFont(StandardFonts.HelveticaBoldOblique);const pages=doc.getPages();for(const[ps,items]of Object.entries(_pdfAllItems)){const pg=pages[+ps-1];if(!pg)continue;for(const it of items){if(it.editStr===null)continue;const font=it.bold&&it.italic?fBoldItalic:it.bold?fBold:it.italic?fItalic:fNormal;const sz=it.sizeOvr||it.pdfFontSize;const c=hexToRgb(it.color||'#000000');pg.drawRectangle({x:it.pdfX-1,y:it.pdfY-sz*0.3,width:Math.max(it.pdfWidth,font.widthOfTextAtSize(it.editStr,sz))+4,height:sz*1.5,color:rgb(1,1,1)});pg.drawText(it.editStr,{x:it.pdfX,y:it.pdfY,size:sz,font,color:rgb(c.r,c.g,c.b)});}}dlPdf(await doc.save(),'edited.pdf');pdfed.value.done=true;}catch(e){pdfed.value.err='Save error: '+e.message;}};
+
+  // ── WORD EDITOR ──
+  const we=ref({html:null,file:null,loading:false,err:'',done:false,dirty:false});
+  const weLoad=async file=>{if(!file)return;we.value.loading=true;we.value.err='';we.value.done=false;try{const buf=await file.arrayBuffer();const result=await mammoth.convertToHtml({arrayBuffer:buf});we.value.html=result.value;we.value.file=file;we.value.dirty=false;await Vue.nextTick();const el=document.getElementById('word-editor');if(el)el.innerHTML=result.value;}catch(e){we.value.err='Error: '+e.message;}we.value.loading=false;};
+  const weNew=async()=>{we.value.html='';we.value.file=null;we.value.dirty=false;await Vue.nextTick();const el=document.getElementById('word-editor');if(el){el.innerHTML='<p>Start typing your document here…</p>';el.focus();}};
+  const weExec=(cmd,val)=>{document.execCommand(cmd,false,val||null);document.getElementById('word-editor')?.focus();};
+  const weExportDocx=()=>{const el=document.getElementById('word-editor');if(!el)return;const text=el.innerText||'';const enc=new TextEncoder();const docxml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${text.split('\n').map(l=>`<w:p><w:r><w:t xml:space="preserve">${escXml(l)}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`;const relsxml=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;const wRels=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;const ct=`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;const zipBytes=buildZip([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(relsxml)},{name:'word/document.xml',data:enc.encode(docxml)},{name:'word/_rels/document.xml.rels',data:enc.encode(wRels)}]);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}));a.download=(we.value.file?.name?.replace(/\.docx$/i,'')||'document')+'.docx';a.click();we.value.done=true;we.value.dirty=false;};
+  const weExportPdf=async()=>{try{const el=document.getElementById('word-editor');if(!el)return;const text=el.innerText||'';const{PDFDocument,StandardFonts,rgb}=PDFLib;const doc=await PDFDocument.create();const font=await doc.embedFont(StandardFonts.Helvetica);const bold2=await doc.embedFont(StandardFonts.HelveticaBold);const pw2=595,ph=842,mg=60,lh=18,fs=12,maxW=pw2-mg*2;const wrap=txt=>{if(!txt.trim())return[''];const ws=txt.split(' ');const ls=[];let cur='';for(const w of ws){const t=cur?cur+' '+w:w;if(font.widthOfTextAtSize(t,fs)<=maxW)cur=t;else{if(cur)ls.push(cur);cur=w;}}if(cur)ls.push(cur);return ls;};let pg=doc.addPage([pw2,ph]);let y=ph-mg;for(const raw of text.split('\n')){const lines=wrap(raw);for(const line of lines){if(y<mg+lh){pg=doc.addPage([pw2,ph]);y=ph-mg;}if(line.trim())pg.drawText(line,{x:mg,y,size:fs,font,color:rgb(0.1,0.1,0.1)});y-=line.trim()?lh:10;}}dlPdf(await doc.save(),(we.value.file?.name?.replace(/\.docx$/i,'')||'document')+'.pdf');we.value.done=true;}catch(e){we.value.err='Error: '+e.message;}};
+
   // ── NEW PDF TOOLS ──
   const hexToRgb=hex=>{const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;return{r,g,b};};
 
@@ -2373,6 +2560,8 @@ createApp({setup(){
     irotate,rotLoad,rotApply,rotDownload,
     iconvert,convLoad,convProcess,
     ocr,ocrLoad,runOcr,downloadOcrText,
+    pdfed,pdfedModifiedCount,pdfedLoad,pdfedReset,pdfedChangePage,pdfedSelect,pdfedTextInput,pdfedApplyEdit,pdfedResetItem,pdfedToggleFmt,pdfedSetSize,pdfedSetColor,pdfedSave,
+    we,weLoad,weNew,weExec,weExportDocx,weExportPdf,
     uc,unitConvs,doConvert,
     wm,wmLoad,addWatermark,
     pn,pnLoad,addPageNums,
@@ -2380,7 +2569,14 @@ createApp({setup(){
     pdf,addPdfs,addImgs,mergePdfs,imgToPdf,splitPdf,
     w2p,loadDocx,convertW2P,p2w,loadPdfForWord,convertP2W,
   };
-}}).mount('#app');
+}});
+// v-init-text: sets innerText once on mount; only resets if binding value actually changes
+// Used for contenteditable divs so Vue's reactivity doesn't clobber user typing
+_vapp.directive('init-text',{
+  mounted(el,b){el.innerText=b.value;},
+  updated(el,b){if(b.value!==b.oldValue)el.innerText=b.value;}
+});
+_vapp.mount('#app');
 </script>
 </body>
 </html>
