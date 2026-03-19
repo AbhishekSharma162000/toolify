@@ -39,7 +39,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 .card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:20px}
 .cl{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-@media(max-width:640px){.cl,.pcards,.r2,.r3{grid-template-columns:1fr!important}.grid{padding:8px 10px}.tp{padding:14px 10px}}
+@media(max-width:640px){.cl,.pcards,.r2,.r3{grid-template-columns:1fr!important}.grid{padding:8px 10px}.tp{padding:14px 10px;display:flex;flex-direction:column}.tp>.ad{order:100}}
 .f{margin-bottom:13px}
 .f label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:500}
 .f input,.f select,.f textarea{width:100%;padding:10px 13px;background:var(--inp);border:1px solid var(--border);border-radius:8px;font-size:13px;color:inherit;outline:none;transition:border .2s}
