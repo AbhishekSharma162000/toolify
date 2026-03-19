@@ -30,7 +30,8 @@ var _u={'/':null,
 '/image-ocr':'imgocr',
 '/pdf-watermark':'pdfwatermark','/pdf-page-numbers':'pdfpagenum',
 '/pdf-rotate-pages':'pdfrotatepgs',
-'/pdf-editor':'pdfedit','/word-editor':'wordedit'};
+'/pdf-editor':'pdfedit','/word-editor':'wordedit',
+'/rank-calculator':'rank'};
 window._URL_TO_ID=_u;
 window.INITIAL_PAGE=_u[location.pathname]||null;
 })();

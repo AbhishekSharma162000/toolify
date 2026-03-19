@@ -301,6 +301,12 @@ const TOOLS = {
     keys: 'pdf to word converter, pdf to docx, convert pdf to word online free, extract text from pdf, pdf converter to word',
     id: 'pdf2word',
   },
+  '/rank-calculator': {
+    title: 'Rank Calculator — Score & Rank Predictor for Govt Exams | Toolify',
+    desc: 'Calculate your score and predict All India Rank for SSC CGL, IBPS PO, RRB NTPC, SBI PO and other competitive exams. Get percentile, cut-off comparison, and selection chances instantly.',
+    keys: 'rank calculator, govt exam rank predictor, ssc cgl rank calculator, ibps po score calculator, rrb ntpc rank predictor, exam cut off calculator, competitive exam rank india',
+    id: 'rank',
+  },
 };
 
 function buildMeta(m) {

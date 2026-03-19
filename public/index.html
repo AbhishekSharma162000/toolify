@@ -36,6 +36,7 @@
 </script>
 
 <!-- Ads -->
+ <script src="https://pl28946013.profitablecpmratenetwork.com/be/d6/fd/bed6fd02cce7855410443f7a8b78295b.js"></script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2214953595126200" crossorigin="anonymous"></script>
 
 <!-- CDN Libraries -->
@@ -1839,6 +1840,236 @@
       <div v-if="p2w.err" class="err">{{p2w.err}}</div>
       <div v-if="p2w.done" class="ok">✓ .docx downloaded!</div>
     </template>
+  </div>
+  <div class="ad">📢 AdSense 336×280</div>
+</div>
+
+<!-- RANK CALCULATOR -->
+<div v-if="page==='rank'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">🏆 Rank Calculator</div>
+  <div class="tsub">Score & rank predictor for SSC, IBPS, RRB & all competitive govt exams</div>
+  <div class="ad">📢 AdSense 728×90</div>
+  <div class="cl">
+
+    <!-- LEFT: INPUT CARD -->
+    <div class="card">
+      <!-- Exam + Category -->
+      <div class="r2">
+        <div class="f">
+          <label>Exam</label>
+          <select :value="rank.exam" @change="rankSetExam($event.target.value)">
+            <option v-for="(ed,name) in RANK_EXAMS" :key="name" :value="name">{{name}}</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Your Category</label>
+          <select v-model="rank.category">
+            <option value="UR">UR (General)</option>
+            <option value="OBC">OBC</option>
+            <option value="EWS">EWS</option>
+            <option value="SC">SC</option>
+            <option value="ST">ST</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mode Toggle -->
+      <div style="display:flex;gap:6px;margin:10px 0 14px">
+        <button @click="rank.mode='count';rank.res=null"
+          :style="{flex:1,padding:'8px',border:'1px solid var(--border)',borderRadius:'8px',cursor:'pointer',fontWeight:600,fontSize:'12px',background:rank.mode==='count'?'var(--p)':'var(--bg2)',color:rank.mode==='count'?'#fff':'var(--fg)'}">
+          📊 Quick Count
+        </button>
+        <button @click="rank.mode='compare';rank.res=null"
+          :style="{flex:1,padding:'8px',border:'1px solid var(--border)',borderRadius:'8px',cursor:'pointer',fontWeight:600,fontSize:'12px',background:rank.mode==='compare'?'var(--p)':'var(--bg2)',color:rank.mode==='compare'?'#fff':'var(--fg)'}">
+          🔑 Answer Key Match
+        </button>
+      </div>
+
+      <!-- QUICK COUNT MODE -->
+      <template v-if="rank.mode==='count'">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Section-wise Responses</div>
+        <div v-for="(sec,i) in rank.sections" :key="i" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--fg)">{{sec.name}}
+            <span style="font-weight:400;color:var(--muted)"> — {{sec.q}} Qs · +{{sec.m}} / −{{sec.n}}</span>
+          </div>
+          <div class="r2">
+            <div class="f"><label style="color:var(--g)">✓ Correct</label><input v-model.number="sec.correct" type="number" min="0" :max="sec.q" placeholder="0"/></div>
+            <div class="f"><label style="color:var(--r)">✗ Wrong</label><input v-model.number="sec.wrong" type="number" min="0" :max="sec.q" placeholder="0"/></div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ANSWER KEY COMPARE MODE -->
+      <template v-if="rank.mode==='compare'">
+        <!-- Marking scheme info -->
+        <div style="background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px">
+          <div style="font-weight:600;margin-bottom:4px;color:var(--p)">📋 {{rank.exam}} — Marking Scheme</div>
+          <div v-for="sec in rank.sections" :key="sec.name" style="color:var(--muted);line-height:1.7">
+            {{sec.name}}: {{sec.q}} Qs · +{{sec.m}} correct · −{{sec.n}} wrong
+          </div>
+        </div>
+
+        <!-- Answer Key URL -->
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🔗 Answer Key URL (Optional)</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px">
+          <input v-model="rank.akUrl" placeholder="https://ssc.gov.in/answer-key.pdf or page URL" style="flex:1;font-size:12px"/>
+          <button @click="rankFetchAK" :disabled="rank.akFetching"
+            style="padding:0 14px;background:var(--p);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap">
+            {{rank.akFetching?'Fetching…':'Fetch'}}
+          </button>
+        </div>
+        <div v-if="rank.akMsg" style="font-size:11px;margin-bottom:8px;"
+          :style="{color:rank.akMsg.startsWith('✓')?'var(--g)':'var(--a)'}">{{rank.akMsg}}</div>
+
+        <!-- Answer Key Paste -->
+        <div class="f">
+          <label>📄 Answer Key <span style="font-weight:400;color:var(--muted)">(paste text or auto-filled from URL)</span></label>
+          <textarea v-model="rank.akText" rows="4" placeholder="Paste answer key here.&#10;Supported formats:&#10;  1-A  2-B  3-C  4-D ...&#10;  1. A  2. B  3. C ...&#10;  ABCDDCBA... (plain string)&#10;  A B C D ... (space separated)" style="font-size:12px;font-family:monospace;resize:vertical"></textarea>
+        </div>
+
+        <!-- User Answers -->
+        <div class="f" style="margin-top:8px">
+          <label>✏️ Your Answers <span style="font-weight:400;color:var(--muted)">(same format as key above)</span></label>
+          <textarea v-model="rank.userAns" rows="4" placeholder="Enter your answers:&#10;  1-A  2-C  3-B  4-D ...&#10;  ACBDDCBA... (plain string)&#10;  A C B D ... (space separated)" style="font-size:12px;font-family:monospace;resize:vertical"></textarea>
+        </div>
+
+        <!-- Live parse preview -->
+        <div style="display:flex;gap:8px;font-size:11px;color:var(--muted);margin-top:6px;margin-bottom:4px">
+          <span>Answer Key: <strong :style="{color:parseAK(rank.akText).filter(Boolean).length>=5?'var(--g)':'var(--muted)'}">{{parseAK(rank.akText).filter(Boolean).length}} answers detected</strong></span>
+          <span>·</span>
+          <span>Your Answers: <strong :style="{color:parseAK(rank.userAns).filter(Boolean).length>=5?'var(--p)':'var(--muted)'}">{{parseAK(rank.userAns).filter(Boolean).length}} answers detected</strong></span>
+        </div>
+      </template>
+
+      <button class="btn" @click="calcRank" style="margin-top:10px">
+        {{rank.mode==='compare'?'🔍 Compare & Calculate Rank →':'📊 Calculate Score & Rank →'}}
+      </button>
+    </div>
+
+    <!-- RIGHT: RESULTS CARD -->
+    <div v-if="rank.res" class="card">
+      <!-- Score Hero -->
+      <div style="text-align:center;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px">
+        <div style="font-size:42px;font-weight:900;color:var(--p);line-height:1">{{rank.res.score}}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px">Total Score</div>
+        <div style="display:flex;justify-content:center;gap:18px;margin-top:10px">
+          <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--g)">{{rank.res.totalCorrect}}</div><div style="font-size:10px;color:var(--muted)">Correct</div></div>
+          <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--r)">{{rank.res.totalWrong}}</div><div style="font-size:10px;color:var(--muted)">Wrong</div></div>
+          <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--a)">{{rank.res.totalUnattempted}}</div><div style="font-size:10px;color:var(--muted)">Skipped</div></div>
+          <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--p)">{{rank.res.accuracy}}%</div><div style="font-size:10px;color:var(--muted)">Accuracy</div></div>
+        </div>
+      </div>
+
+      <!-- Section Breakdown -->
+      <div v-if="rank.res.secRes.length>1" style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Section-wise Breakdown</div>
+        <div style="overflow-x:auto;border-radius:7px;border:1px solid var(--border)">
+          <table class="tbl">
+            <tr><th>Section</th><th>Score</th><th style="color:var(--g)">✓</th><th style="color:var(--r)">✗</th><th>Skip</th></tr>
+            <tr v-for="s in rank.res.secRes" :key="s.name">
+              <td style="font-size:11px;max-width:130px;word-break:break-word">{{s.name.split(' & ')[0].split(' and ')[0]}}</td>
+              <td style="font-weight:700;color:var(--p)">{{s.score}}</td>
+              <td style="color:var(--g)">{{s.correct}}</td>
+              <td style="color:var(--r)">{{s.wrong}}</td>
+              <td style="color:var(--muted)">{{s.unattempted}}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Rank & Percentile -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🎯 Rank Prediction</div>
+        <div style="display:flex;justify-content:space-around;text-align:center">
+          <div>
+            <div style="font-size:20px;font-weight:800;color:var(--p)">{{rank.res.rankMin.toLocaleString('en-IN')}} – {{rank.res.rankMax.toLocaleString('en-IN')}}</div>
+            <div style="font-size:11px;color:var(--muted)">Expected All India Rank</div>
+          </div>
+          <div>
+            <div style="font-size:20px;font-weight:800;color:var(--a)">{{rank.res.pctile}}%</div>
+            <div style="font-size:11px;color:var(--muted)">Percentile</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cut-off comparison -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Expected Cut-offs (Historical)</div>
+        <div class="rg">
+          <div v-for="cat in ['UR','OBC','EWS','SC','ST']" :key="cat" class="rb">
+            <div class="rl" :style="{fontWeight:rank.category===cat?700:'normal',color:rank.category===cat?'var(--p)':''}">
+              {{cat}}{{rank.category===cat?' ★':''}}
+            </div>
+            <div class="rv" :style="{color:rank.res.score>=rank.res.cutoff[cat]?'var(--g)':'var(--r)',fontWeight:rank.category===cat?700:'normal'}">
+              {{rank.res.cutoff[cat]}} {{rank.res.score>=rank.res.cutoff[cat]?'✓':'✗'}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selection Chance -->
+      <div style="border-radius:10px;padding:14px;text-align:center;margin-bottom:12px"
+           :style="{background:rank.res.selectionChance==='High'?'rgba(5,150,105,.15)':rank.res.selectionChance==='Moderate'?'rgba(217,119,6,.15)':'rgba(229,62,62,.15)',border:'1px solid '+(rank.res.selectionChance==='High'?'var(--g)':rank.res.selectionChance==='Moderate'?'var(--a)':'var(--r)')}">
+        <div style="font-size:24px">{{rank.res.selectionChance==='High'?'🟢':rank.res.selectionChance==='Moderate'?'🟡':'🔴'}}</div>
+        <div style="font-size:17px;font-weight:700;margin-top:4px"
+             :style="{color:rank.res.selectionChance==='High'?'var(--g)':rank.res.selectionChance==='Moderate'?'var(--a)':'var(--r)'}">
+          {{rank.res.selectionChance}} Selection Chance
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px">
+          Your score <strong>{{rank.res.score}}</strong> vs {{rank.category}} cut-off <strong>{{rank.res.userCutoff}}</strong>
+        </div>
+      </div>
+
+      <!-- Per-Question Comparison (Answer Key mode only) -->
+      <div v-if="rank.res.comparison">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Question-wise Analysis</div>
+          <button @click="rank.showCmp=!rank.showCmp"
+            style="font-size:11px;padding:3px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--muted)">
+            {{rank.showCmp?'Hide':'Show'}} Details
+          </button>
+        </div>
+        <!-- Bubble Grid -->
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
+          <div v-for="q in rank.res.comparison" :key="q.q"
+            style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:default"
+            :style="{background:q.res==='correct'?'var(--g)':q.res==='wrong'?'var(--r)':'var(--bg2)',color:q.res==='skip'?'var(--muted)':'#fff',border:q.res==='skip'?'1px solid var(--border)':'none'}"
+            :title="'Q'+q.q+' | Your: '+q.ua+' | Key: '+q.ak">
+            {{q.q}}
+          </div>
+        </div>
+        <!-- Legend -->
+        <div style="display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:8px">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--g);margin-right:3px"></span>Correct</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--r);margin-right:3px"></span>Wrong</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);margin-right:3px"></span>Skipped</span>
+        </div>
+        <!-- Detailed Table -->
+        <div v-if="rank.showCmp" style="max-height:220px;overflow-y:auto;border-radius:7px;border:1px solid var(--border)">
+          <table class="tbl">
+            <tr><th>Q#</th><th>Your Answer</th><th>Key Answer</th><th>Result</th></tr>
+            <tr v-for="q in rank.res.comparison" :key="q.q">
+              <td>{{q.q}}</td>
+              <td style="font-weight:600">{{q.ua}}</td>
+              <td style="font-weight:600">{{q.ak}}</td>
+              <td :style="{color:q.res==='correct'?'var(--g)':q.res==='wrong'?'var(--r)':'var(--muted)',fontWeight:600}">
+                {{q.res==='correct'?'✓ Correct':q.res==='wrong'?'✗ Wrong':'— Skipped'}}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px">
+        * Rank & cut-off predictions use historical data. Actual results may vary.
+      </div>
+    </div>
+
+    <div v-else class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;opacity:.5">
+      <div style="font-size:52px;margin-bottom:12px">🏆</div>
+      <div style="font-size:14px;color:var(--muted)">Fill in your details to see rank prediction</div>
+    </div>
   </div>
   <div class="ad">📢 AdSense 336×280</div>
 </div>

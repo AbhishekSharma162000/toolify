@@ -44,7 +44,8 @@ const _vapp=createApp({setup(){
     imgrotate:'/image-rotate',imgconvert:'/image-converter',
     imgocr:'/image-ocr',
     pdfwatermark:'/pdf-watermark',pdfpagenum:'/pdf-page-numbers',pdfrotatepgs:'/pdf-rotate-pages',
-    pdfedit:'/pdf-editor',wordedit:'/word-editor'
+    pdfedit:'/pdf-editor',wordedit:'/word-editor',
+    rank:'/rank-calculator'
   };
   const toolUrl=id=>_ID_TO_URL[id]||'/';
   const page=ref(window.INITIAL_PAGE||'home'),search=ref(''),activeCat=ref('All');
@@ -113,6 +114,7 @@ const _vapp=createApp({setup(){
     {id:'pdfrotatepgs',icon:'🔁',name:'Rotate PDF Pages',   desc:'Rotate all or specific pages',       color:'rgba(124,111,255,.2)', cat:'PDF Tools'},
     {id:'pdfedit',     icon:'✏️',name:'PDF Editor',         desc:'View & annotate PDF with text',      color:'rgba(255,100,100,.18)',cat:'PDF Tools',            hot:true},
     {id:'wordedit',    icon:'📝',name:'Word Editor',         desc:'Edit .docx files in your browser',   color:'rgba(94,240,200,.15)', cat:'PDF Tools',            hot:true},
+    {id:'rank',        icon:'🏆',name:'Rank Calculator',      desc:'Score & rank predictor for govt exams',color:'rgba(255,183,77,.18)',cat:'Career & Templates',   hot:true},
   ];
 
   const filteredTools=computed(()=>allTools.filter(t=>
@@ -540,6 +542,104 @@ const _vapp=createApp({setup(){
   const loadPdfForWord=async file=>{if(!file||file.type!=='application/pdf')return;p2w.value.file=file;p2w.value.done=false;p2w.value.err='';const size=fmtB(file.size);try{const{PDFDocument}=PDFLib;const doc=await PDFDocument.load(await file.arrayBuffer());p2w.value.info={pages:doc.getPageCount(),size};}catch(e){p2w.value.err='Error: '+e.message;}};
   const escXml=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const buildZip=files2=>{const enc=new TextEncoder();let offset=0;const parts=[],cd=[];const u32=n=>{const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;};const u16=n=>{const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;};const crc32=data=>{let c=0xFFFFFFFF;const t=[];for(let i=0;i<256;i++){let x=i;for(let j=0;j<8;j++)x=x&1?(0xEDB88320^(x>>>1)):(x>>>1);t[i]=x;}for(let i=0;i<data.length;i++)c=t[(c^data[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;};files2.forEach(({name,data})=>{const nb=enc.encode(name),crc=crc32(data);const lh2=new Uint8Array([0x50,0x4B,0x03,0x04,20,0,0,0,0,0,0,0,0,0,...u32(crc),...u32(data.length),...u32(data.length),...u16(nb.length),0,0,...nb]);cd.push({nb,crc,size:data.length,offset});parts.push(lh2,data);offset+=lh2.length+data.length;});const cdStart=offset;cd.forEach(({nb,crc,size,offset:off})=>{const r=new Uint8Array([0x50,0x4B,0x01,0x02,20,0,20,0,0,0,0,0,0,0,0,0,...u32(crc),...u32(size),...u32(size),...u16(nb.length),0,0,0,0,0,0,0,0,0,0,...u32(off),...nb]);parts.push(r);offset+=r.length;});const eocd=new Uint8Array([0x50,0x4B,0x05,0x06,0,0,0,0,...u16(cd.length),...u16(cd.length),...u32(offset-cdStart),...u32(cdStart),0,0]);parts.push(eocd);const total=parts.reduce((s,p)=>s+p.length,0);const out=new Uint8Array(total);let pos=0;parts.forEach(p=>{out.set(p,pos);pos+=p.length;});return out;};
+  // ── RANK CALCULATOR ──
+  const RANK_EXAMS={
+    'SSC CGL':{totalQ:200,sections:[{name:'General Intelligence & Reasoning',q:25,m:2,n:0.5},{name:'General Awareness',q:25,m:2,n:0.5},{name:'Quantitative Aptitude',q:25,m:2,n:0.5},{name:'English Comprehension',q:25,m:2,n:0.5}],totalCandidates:3000000,avgScore:110,stdDev:28,cutoff:{UR:145,OBC:135,EWS:140,SC:122,ST:115},vacancies:7500},
+    'SSC CHSL':{totalQ:100,sections:[{name:'General Intelligence',q:25,m:2,n:0.5},{name:'General Awareness',q:25,m:2,n:0.5},{name:'Quantitative Aptitude',q:25,m:2,n:0.5},{name:'English Language',q:25,m:2,n:0.5}],totalCandidates:2500000,avgScore:115,stdDev:25,cutoff:{UR:140,OBC:130,EWS:135,SC:115,ST:108},vacancies:4500},
+    'SSC MTS':{totalQ:90,sections:[{name:'Numerical & Mathematical Ability',q:20,m:1,n:0},{name:'Reasoning & Problem Solving',q:20,m:1,n:0},{name:'General Awareness',q:25,m:1,n:0},{name:'English & Comprehension',q:25,m:1,n:0}],totalCandidates:4000000,avgScore:55,stdDev:15,cutoff:{UR:70,OBC:63,EWS:67,SC:55,ST:48},vacancies:12000},
+    'IBPS PO':{totalQ:100,sections:[{name:'Reasoning Ability',q:35,m:1,n:0.25},{name:'English Language',q:30,m:1,n:0.25},{name:'Quantitative Aptitude',q:35,m:1,n:0.25}],totalCandidates:1500000,avgScore:40,stdDev:12,cutoff:{UR:47,OBC:43,EWS:45,SC:40,ST:37},vacancies:4000},
+    'IBPS Clerk':{totalQ:100,sections:[{name:'Reasoning Ability',q:35,m:1,n:0.25},{name:'English Language',q:30,m:1,n:0.25},{name:'Numerical Ability',q:35,m:1,n:0.25}],totalCandidates:2000000,avgScore:43,stdDev:12,cutoff:{UR:50,OBC:46,EWS:48,SC:42,ST:38},vacancies:6000},
+    'SBI PO':{totalQ:115,sections:[{name:'Reasoning & Computer Aptitude',q:45,m:1,n:0.25},{name:'Data Analysis & Interpretation',q:35,m:1,n:0.25},{name:'English Language',q:35,m:1,n:0.25}],totalCandidates:1200000,avgScore:45,stdDev:13,cutoff:{UR:52,OBC:48,EWS:50,SC:43,ST:40},vacancies:2000},
+    'SBI Clerk':{totalQ:100,sections:[{name:'General/Financial Awareness',q:50,m:1,n:0.25},{name:'General English',q:40,m:1,n:0.25},{name:'Quantitative Aptitude',q:50,m:1,n:0.25},{name:'Reasoning Ability & Computer Aptitude',q:60,m:1,n:0.25}],totalCandidates:2500000,avgScore:55,stdDev:15,cutoff:{UR:65,OBC:60,EWS:63,SC:54,ST:49},vacancies:8000},
+    'RRB NTPC':{totalQ:100,sections:[{name:'Mathematics',q:30,m:1,n:0.33},{name:'General Intelligence & Reasoning',q:30,m:1,n:0.33},{name:'General Awareness',q:40,m:1,n:0.33}],totalCandidates:10000000,avgScore:55,stdDev:18,cutoff:{UR:75,OBC:68,EWS:72,SC:62,ST:57},vacancies:35000},
+    'RRB Group D':{totalQ:100,sections:[{name:'Mathematics',q:25,m:1,n:0.33},{name:'General Intelligence & Reasoning',q:30,m:1,n:0.33},{name:'General Science',q:25,m:1,n:0.33},{name:'General Awareness & Current Affairs',q:20,m:1,n:0.33}],totalCandidates:12000000,avgScore:50,stdDev:16,cutoff:{UR:70,OBC:63,EWS:67,SC:57,ST:52},vacancies:103769},
+    'CTET':{totalQ:150,sections:[{name:'Child Development & Pedagogy',q:30,m:1,n:0},{name:'Language I',q:30,m:1,n:0},{name:'Language II',q:30,m:1,n:0},{name:'Mathematics',q:30,m:1,n:0},{name:'Environmental Studies',q:30,m:1,n:0}],totalCandidates:3000000,avgScore:90,stdDev:20,cutoff:{UR:90,OBC:82,EWS:82,SC:82,ST:82},vacancies:500000},
+    'UPSC CAPF':{totalQ:125,sections:[{name:'General Ability & Intelligence',q:125,m:2,n:0.67}],totalCandidates:400000,avgScore:150,stdDev:40,cutoff:{UR:185,OBC:172,EWS:180,SC:155,ST:145},vacancies:322},
+  };
+  const rank=ref({exam:'SSC CGL',category:'UR',sections:[],res:null,mode:'count',akUrl:'',akText:'',userAns:'',akFetching:false,akMsg:'',showCmp:false});
+  rank.value.sections=RANK_EXAMS['SSC CGL'].sections.map(s=>({...s,correct:0,wrong:0}));
+  const rankSetExam=name=>{
+    const ed=RANK_EXAMS[name];if(!ed)return;
+    rank.value.exam=name;rank.value.sections=ed.sections.map(s=>({...s,correct:0,wrong:0}));rank.value.res=null;rank.value.akMsg='';
+  };
+  const parseAK=text=>{
+    if(!text)return[];
+    const ans=[null];
+    // Try "1. A", "1-A", "1)A", "Q1:A" numbered patterns
+    const numbered=[...text.matchAll(/(?:q(?:ues(?:tion)?)?\s*)?(\d+)\s*[.):\-]\s*([a-dA-D])\b/gi)];
+    if(numbered.length>=5){numbered.forEach(m=>{ans[parseInt(m[1])]=m[2].toUpperCase();});return ans;}
+    // Try "1 A" space-paired
+    const paired=[...text.matchAll(/\b(\d+)\s+([A-D])\b/gi)];
+    if(paired.length>=5){paired.forEach(m=>{ans[parseInt(m[1])]=m[2].toUpperCase();});return ans;}
+    // Try plain "ABCDDCBA..."
+    const plain=text.replace(/\s+/g,'').replace(/[^abcdABCD]/gi,'').toUpperCase();
+    if(plain.length>=5){for(let i=0;i<plain.length;i++)ans[i+1]=plain[i];return ans;}
+    // Try space-separated "A B C D..."
+    const spaced=text.trim().split(/\s+/).filter(x=>/^[ABCD]$/i.test(x));
+    if(spaced.length>=5){spaced.forEach((a,i)=>{ans[i+1]=a.toUpperCase();});return ans;}
+    return ans;
+  };
+  const rankFetchAK=async()=>{
+    if(!rank.value.akUrl.trim()){rank.value.akMsg='⚠ Enter a URL first';return;}
+    rank.value.akFetching=true;rank.value.akMsg='';
+    try{
+      const res=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(rank.value.akUrl.trim()));
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const html=await res.text();
+      const stripped=html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'').replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ');
+      rank.value.akText=stripped.slice(0,30000);
+      const parsed=parseAK(rank.value.akText);
+      const cnt=parsed.filter(Boolean).length;
+      if(cnt<5)throw new Error('Auto-parse found only '+cnt+' answers. Please paste the answer key text manually below.');
+      rank.value.akMsg='✓ Fetched & parsed '+cnt+' answers from URL';
+    }catch(e){rank.value.akMsg='⚠ '+( e.message||'Fetch failed. Paste the answer key text manually.');}
+    rank.value.akFetching=false;
+  };
+  const normalCDF=z=>{const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p2=0.3275911;const sign=z<0?-1:1;const az=Math.abs(z);const t=1/(1+p2*az);const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-az*az);return 0.5*(1+sign*y);};
+  const calcRank=()=>{
+    const ed=RANK_EXAMS[rank.value.exam];if(!ed)return;
+    let comparison=null;
+    if(rank.value.mode==='compare'){
+      const ak=parseAK(rank.value.akText);const ua=parseAK(rank.value.userAns);
+      const akCnt=ak.filter(Boolean).length,uaCnt=ua.filter(Boolean).length;
+      if(akCnt<5){rank.value.akMsg='⚠ Answer key not parsed. Add URL or paste key below.';return;}
+      if(uaCnt<5){rank.value.akMsg='⚠ Enter your answers in the "Your Answers" field.';return;}
+      comparison=[];let qOff=1;
+      rank.value.sections=rank.value.sections.map(sec=>{
+        let correct=0,wrong=0;
+        for(let q=qOff;q<qOff+sec.q;q++){
+          const akA=ak[q]||null,uaA=ua[q]||null;
+          let res2='skip';
+          if(uaA){if(akA&&uaA===akA){correct++;res2='correct';}else if(akA){wrong++;res2='wrong';}else res2='undef';}
+          comparison.push({q,ak:akA||'?',ua:uaA||'–',res:res2});
+        }
+        qOff+=sec.q;return{...sec,correct,wrong};
+      });
+    }
+    let totalCorrect=0,totalWrong=0,totalScore=0;
+    const secRes=rank.value.sections.map(s=>{
+      const c=Math.max(0,s.correct||0),w=Math.max(0,s.wrong||0);
+      const u=Math.max(0,s.q-c-w);const sc=+(c*s.m-w*s.n).toFixed(2);
+      totalCorrect+=c;totalWrong+=w;totalScore+=sc;
+      return{name:s.name,q:s.q,correct:c,wrong:w,unattempted:u,score:sc};
+    });
+    const totalQ=rank.value.sections.reduce((s,x)=>s+x.q,0);
+    const totalUnattempted=totalQ-totalCorrect-totalWrong;
+    const accuracy=totalCorrect+totalWrong>0?Math.round(totalCorrect/(totalCorrect+totalWrong)*100):0;
+    totalScore=+totalScore.toFixed(2);
+    const z=(totalScore-ed.avgScore)/ed.stdDev;
+    const pctile=Math.min(99.9,Math.max(0.1,+(normalCDF(z)*100).toFixed(1)));
+    const above=1-pctile/100;
+    const rankMin=Math.max(1,Math.round(above*ed.totalCandidates*0.85));
+    const rankMax=Math.max(rankMin+100,Math.round(above*ed.totalCandidates*1.15));
+    const cat=rank.value.category;
+    const userCutoff=ed.cutoff[cat]||ed.cutoff.UR;
+    let selectionChance='Low';
+    if(totalScore>=userCutoff*1.08)selectionChance='High';
+    else if(totalScore>=userCutoff*0.93)selectionChance='Moderate';
+    rank.value.res={score:totalScore,totalCorrect,totalWrong,totalUnattempted,totalQ,accuracy,secRes,pctile,rankMin,rankMax,cutoff:ed.cutoff,userCutoff,selectionChance,vacancies:ed.vacancies,comparison};
+  };
+
   const convertP2W=async()=>{p2w.value.loading=true;p2w.value.err='';p2w.value.done=false;try{const srcBuf=await p2w.value.file.arrayBuffer();const raw=new TextDecoder('latin1').decode(new Uint8Array(srcBuf));const btBlocks=[...raw.matchAll(/BT[\s\S]*?ET/g)];let extracted='';btBlocks.forEach(b=>{[...b[0].matchAll(/\(([^)]*)\)\s*T[jJ]/g)].forEach(m=>extracted+=m[1].replace(/\\n/g,'\n').replace(/\\\(/g,'(').replace(/\\\)/g,')')+' ');[...b[0].matchAll(/\[([^\]]*)\]\s*TJ/g)].forEach(m=>[...m[1].matchAll(/\(([^)]*)\)/g)].forEach(p=>extracted+=p[1]+' '));extracted+='\n';});extracted=extracted.trim()||'[No readable text found]';const enc=new TextEncoder();const docxml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>${escXml(p2w.value.file.name)}</w:t></w:r></w:p>${extracted.split('\n').map(l=>`<w:p><w:r><w:t xml:space="preserve">${escXml(l.trim())}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`;const relsxml=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;const wRels=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;const ct=`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;const zipBytes=buildZip([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(relsxml)},{name:'word/document.xml',data:enc.encode(docxml)},{name:'word/_rels/document.xml.rels',data:enc.encode(wRels)}]);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}));a.download=p2w.value.file.name.replace(/\.pdf$/i,'')+'.docx';a.click();p2w.value.done=true;}catch(e){p2w.value.err='Error: '+e.message;}p2w.value.loading=false;};
 
   return{
@@ -575,6 +675,7 @@ const _vapp=createApp({setup(){
     prt,prtLoad,rotatePdfPages,
     pdf,addPdfs,addImgs,mergePdfs,imgToPdf,splitPdf,
     w2p,loadDocx,convertW2P,p2w,loadPdfForWord,convertP2W,
+    rank,rankSetExam,RANK_EXAMS,parseAK,rankFetchAK,calcRank,
   };
 }});
 // v-init-text: sets innerText once on mount; only resets if binding value actually changes
