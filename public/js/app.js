@@ -45,7 +45,8 @@ const _vapp=createApp({setup(){
     imgocr:'/image-ocr',
     pdfwatermark:'/pdf-watermark',pdfpagenum:'/pdf-page-numbers',pdfrotatepgs:'/pdf-rotate-pages',
     pdfedit:'/pdf-editor',wordedit:'/word-editor',
-    rank:'/rank-calculator'
+    rank:'/rank-calculator',
+    cacalc:'/ca-calculator'
   };
   const toolUrl=id=>_ID_TO_URL[id]||'/';
   const page=ref(window.INITIAL_PAGE||'home'),search=ref(''),activeCat=ref('All');
@@ -66,6 +67,7 @@ const _vapp=createApp({setup(){
     {id:'gratuity',  icon:'🎁',name:'Gratuity Calculator',     desc:'As per Gratuity Act',                color:'rgba(124,111,255,.2)', cat:'Finance',             hot:true},
     {id:'pf',        icon:'🏦',name:'EPF / PF Calculator',     desc:'PF maturity amount',                 color:'rgba(94,240,200,.15)', cat:'Finance'},
     {id:'tds',       icon:'📋',name:'TDS Calculator',          desc:'Tax deducted at source',             color:'rgba(255,183,77,.18)', cat:'Finance',             hot:true},
+    {id:'cacalc',    icon:'🧮',name:'CA Suite',               desc:'Tax planner · Investments · P&L · Net Worth', color:'rgba(94,240,200,.2)', cat:'Finance',       hot:true},
     {id:'breakeven', icon:'📉',name:'Break-Even Calculator',   desc:'When does your business profit?',    color:'rgba(255,100,100,.18)',cat:'Finance'},
     {id:'freelance', icon:'💻',name:'Freelance Rate Calc',     desc:'What to charge per hour',            color:'rgba(124,111,255,.2)', cat:'Finance',             hot:true},
     {id:'percent',   icon:'📐',name:'Percentage Calculator',   desc:'3 types of percentage math',         color:'rgba(255,183,77,.18)', cat:'Finance',             popular:true},
@@ -640,6 +642,105 @@ const _vapp=createApp({setup(){
     rank.value.res={score:totalScore,totalCorrect,totalWrong,totalUnattempted,totalQ,accuracy,secRes,pctile,rankMin,rankMax,cutoff:ed.cutoff,userCutoff,selectionChance,vacancies:ed.vacancies,comparison};
   };
 
+  // ── CA SUITE ──
+  const ca=ref({
+    tab:'tax',
+    tax:{income:null,source:'salary',hra:0,c80:0,nps80:0,med80Self:0,med80Parent:0,seniorParent:false,don80g:0,hlInt:0,edu80e:0,tta:0,res:null},
+    inv:{monthly:null,expenses:null,risk:'moderate',projYears:10,res:null},
+    pl:{revenues:[{label:'Product Sales',amt:0},{label:'Service Income',amt:0}],cogs:0,expenses:[{label:'Rent',amt:0},{label:'Salaries',amt:0},{label:'Marketing',amt:0}],otherIncome:0,depreciation:0,res:null},
+    nw:{cash:0,bank:0,stocks:0,mf:0,fd:0,ppf:0,property:0,gold:0,otherAsset:0,homeloan:0,carloan:0,personal:0,creditcard:0,otherLiab:0,res:null}
+  });
+
+  const calcCaTax=()=>{
+    const t=ca.value.tax;
+    const inc=t.income||0;
+    const newStd=t.source==='salary'?75000:0;
+    const newTI=Math.max(0,inc-newStd);
+    const newSlabs=[[0,300000,0,'₹0–₹3L'],[300000,700000,5,'₹3L–₹7L'],[700000,1000000,10,'₹7L–₹10L'],[1000000,1200000,15,'₹10L–₹12L'],[1200000,1500000,20,'₹12L–₹15L'],[1500000,Infinity,30,'Above ₹15L']];
+    const oldSlabs=[[0,250000,0,'₹0–₹2.5L'],[250000,500000,5,'₹2.5L–₹5L'],[500000,1000000,20,'₹5L–₹10L'],[1000000,Infinity,30,'Above ₹10L']];
+    const calcSlabs=(ti,slabs)=>{let tax=0;const bd=[];for(const[from,to,rate,lbl]of slabs){if(ti<=from)break;const taxable=Math.min(ti,to===Infinity?ti:to)-from;const t2=Math.round(taxable*rate/100);bd.push({l:lbl+` (${rate}%)`,t:t2});tax+=t2;}return{tax,bd};};
+    const applyRebateCess=(tax,ti,isNew)=>{const rebate=isNew?(ti<=700000?tax:0):Math.min(tax,ti<=500000?12500:0);const taxAfter=Math.max(0,tax-rebate);const sur=ti>5e7?Math.round(taxAfter*.37):ti>2e7?Math.round(taxAfter*.25):ti>1e7?Math.round(taxAfter*.15):ti>5e6?Math.round(taxAfter*.1):0;const cess=Math.round((taxAfter+sur)*.04);return{taxAfter,rebate,sur,cess,total:taxAfter+sur+cess};};
+    const{tax:nRaw,bd:nBD}=calcSlabs(newTI,newSlabs);
+    const{taxAfter:nTA,rebate:nReb,sur:nSur,cess:nCess,total:newTotal}=applyRebateCess(nRaw,newTI,true);
+    const stdDed=t.source==='salary'?50000:0;
+    const c80=Math.min(150000,t.c80||0);const nps80=Math.min(50000,t.nps80||0);
+    const med80S=Math.min(25000,t.med80Self||0);const med80P=Math.min(t.seniorParent?50000:25000,t.med80Parent||0);
+    const don=Math.round((t.don80g||0)*.5);const hl=Math.min(200000,t.hlInt||0);
+    const edu=t.edu80e||0;const tta=Math.min(10000,t.tta||0);const hra=t.hra||0;
+    const totalDeds=stdDed+hra+c80+nps80+med80S+med80P+don+hl+edu+tta;
+    const oldTI=Math.max(0,inc-totalDeds);
+    const{tax:oRaw,bd:oBD}=calcSlabs(oldTI,oldSlabs);
+    const{taxAfter:oTA,rebate:oReb,sur:oSur,cess:oCess,total:oldTotal}=applyRebateCess(oRaw,oldTI,false);
+    const better=newTotal<=oldTotal?'new':'old';
+    const saving=Math.abs(oldTotal-newTotal);
+    const deds=[{l:'Standard Deduction',v:stdDed},{l:'HRA Exemption',v:hra},{l:'80C – PPF/ELSS/LIC/FD',v:c80},{l:'80CCD(1B) – NPS',v:nps80},{l:'80D – Self + Family',v:med80S},{l:'80D – Parents',v:med80P},{l:'80G – Donations (50%)',v:don},{l:'24(b) – Home Loan Interest',v:hl},{l:'80E – Education Loan',v:edu},{l:'80TTA – Savings Interest',v:tta}].filter(d=>d.v>0);
+    ca.value.tax.res={inc,new:{taxable:newTI,stdDed:newStd,rawTax:nRaw,rebate:nReb,sur:nSur,cess:nCess,total:newTotal,bd:nBD,inHand:Math.round((inc-newTotal)/12)},old:{taxable:oldTI,totalDeds,rawTax:oRaw,rebate:oReb,sur:oSur,cess:oCess,total:oldTotal,bd:oBD,deds,inHand:Math.round((inc-oldTotal)/12)},better,saving};
+  };
+
+  const sipFV=(p,rateAnnual,years)=>{if(!p||!rateAnnual||!years)return 0;const r=rateAnnual/100/12;const n=years*12;return Math.round(p*((Math.pow(1+r,n)-1)/r)*(1+r));};
+  const caPortfolioFV=(years)=>{if(!ca.value.inv.res)return{corpus:0,invested:0,profit:0,pct:0,mult:0,blended:0};const alloc=ca.value.inv.res.alloc;const corpus=alloc.reduce((s,a)=>s+sipFV(a.amt,a.rate,years),0);const invested=(ca.value.inv.res.investable||0)*12*years;const profit=corpus-invested;const pct=invested?+((profit/invested)*100).toFixed(1):0;const mult=invested?+((corpus/invested).toFixed(2)):0;const blended=+(alloc.reduce((s,a)=>s+a.rate*a.pct,0)/100).toFixed(1);return{corpus,invested,profit,pct,mult,blended};};
+
+  const calcCaInvest=()=>{
+    const inv=ca.value.inv;
+    const monthly=inv.monthly||0;const expenses=inv.expenses||0;
+    const investable=Math.max(0,monthly-expenses);
+    const emFund=expenses*6;
+    const risk=inv.risk;
+    const alloc=risk==='conservative'?[
+      {name:'Liquid Fund / FD',pct:20,type:'safe',rate:5.5,desc:'Emergency corpus — Parag Parikh Liquid, HDFC Liquid Fund'},
+      {name:'Debt Mutual Fund',pct:30,type:'debt',rate:7.5,desc:'ICICI Pru Short Term, Kotak Corporate Bond MF'},
+      {name:'PPF',pct:20,type:'debt',rate:7.1,desc:'Guaranteed 7.1% p.a. tax-free — 80C benefit'},
+      {name:'Large Cap Equity MF',pct:20,type:'equity',rate:12,desc:'Mirae Asset Large Cap, Axis Bluechip Fund'},
+      {name:'Gold ETF / SGB',pct:10,type:'gold',rate:9,desc:'Nippon India Gold ETF, Sovereign Gold Bond'},
+    ]:risk==='moderate'?[
+      {name:'Liquid Fund (Emergency)',pct:10,type:'safe',rate:5.5,desc:'HDFC Liquid, Axis Liquid Fund'},
+      {name:'PPF + NPS Tier-1',pct:20,type:'debt',rate:7.5,desc:'PPF 7.1% tax-free + NPS extra ₹50K deduction (80CCD 1B)'},
+      {name:'Large Cap Equity MF',pct:20,type:'equity',rate:12,desc:'Mirae Asset Large Cap, Canara Robeco Bluechip'},
+      {name:'Flexi / Multi Cap MF',pct:25,type:'equity',rate:13,desc:'Parag Parikh Flexi Cap, HDFC Flexi Cap Fund'},
+      {name:'Mid Cap MF',pct:15,type:'equity',rate:15,desc:'Nippon India Mid Cap, Kotak Mid Cap Fund'},
+      {name:'Gold ETF / SGB',pct:10,type:'gold',rate:9,desc:'SBI Gold ETF, Sovereign Gold Bond (2.5% p.a. + price gain)'},
+    ]:[
+      {name:'PPF + NPS Tier-1',pct:15,type:'debt',rate:7.5,desc:'NPS Tier-1 tax benefit u/s 80CCD(1B) + PPF 7.1%'},
+      {name:'Large Cap / Index MF',pct:20,type:'equity',rate:12,desc:'UTI Nifty 50 Index, HDFC Nifty 50 Index Fund'},
+      {name:'Flexi / Multi Cap MF',pct:20,type:'equity',rate:13,desc:'Parag Parikh Flexi Cap, Quant Flexi Cap Fund'},
+      {name:'Mid Cap MF',pct:20,type:'equity',rate:15,desc:'Nippon India Mid Cap, SBI Mid Cap Fund'},
+      {name:'Small Cap MF',pct:15,type:'equity',rate:17,desc:'Nippon India Small Cap, Quant Small Cap Fund'},
+      {name:'Direct Equity',pct:5,type:'equity',rate:14,desc:'Quality bluechip stocks for long-term wealth creation'},
+      {name:'Gold ETF / SGB',pct:5,type:'gold',rate:9,desc:'Hedge against inflation & currency risk'},
+    ];
+    const allocWithAmt=alloc.map(a=>({...a,amt:Math.round(investable*a.pct/100)}));
+    const taxSaving=[
+      {name:'PPF',limit:'₹1.5L (80C)',ret:'7.1% tax-free',lock:'15 yrs',note:'Best for conservative investors'},
+      {name:'ELSS MF',limit:'₹1.5L (80C)',ret:'12–15% (market)',lock:'3 yrs',note:'Shortest lock-in under 80C'},
+      {name:'NPS Tier-1',limit:'₹50K (80CCD 1B)',ret:'9–12%',lock:'Till 60',note:'Extra ₹50K beyond 80C limit'},
+      {name:'Health Insurance',limit:'₹25K–50K (80D)',ret:'Protection',lock:'Annual',note:'₹50K if parents are senior citizens'},
+      {name:'5yr Tax Saver FD',limit:'₹1.5L (80C)',ret:'6.5–7%',lock:'5 yrs',note:'Guaranteed returns, low risk'},
+      {name:'Sukanya Samriddhi',limit:'₹1.5L (80C)',ret:'8.2% tax-free',lock:'21 yrs',note:'Only for girl child'},
+      {name:'Home Loan Principal',limit:'₹1.5L (80C)',ret:'Asset creation',lock:'—',note:'Interest also u/s 24(b) max ₹2L'},
+      {name:'SGB (Sovereign Gold Bond)',limit:'No cap',ret:'2.5% + gold gain',lock:'8 yrs',note:'Capital gains tax-free at maturity'},
+    ];
+    ca.value.inv.res={monthly,expenses,investable,emFund,alloc:allocWithAmt,taxSaving};
+  };
+
+  const calcCaPL=()=>{
+    const pl=ca.value.pl;
+    const rev=pl.revenues.reduce((s,r)=>s+(r.amt||0),0)+(pl.otherIncome||0);
+    const cogs=pl.cogs||0;const gross=rev-cogs;
+    const gm=rev?+((gross/rev)*100).toFixed(1):0;
+    const opex=pl.expenses.reduce((s,e)=>s+(e.amt||0),0);
+    const ebitda=gross-opex;const dep=pl.depreciation||0;const ebit=ebitda-dep;
+    const nm=rev?+((ebit/rev)*100).toFixed(1):0;
+    ca.value.pl.res={rev,cogs,gross,gm,opex,ebitda,dep,ebit,nm};
+  };
+
+  const calcCaNW=()=>{
+    const nw=ca.value.nw;
+    const aTotal=(nw.cash||0)+(nw.bank||0)+(nw.stocks||0)+(nw.mf||0)+(nw.fd||0)+(nw.ppf||0)+(nw.property||0)+(nw.gold||0)+(nw.otherAsset||0);
+    const lTotal=(nw.homeloan||0)+(nw.carloan||0)+(nw.personal||0)+(nw.creditcard||0)+(nw.otherLiab||0);
+    const netWorth=aTotal-lTotal;const dtr=aTotal?+((lTotal/aTotal)*100).toFixed(1):0;
+    ca.value.nw.res={aTotal,lTotal,netWorth,dtr};
+  };
+
   const convertP2W=async()=>{p2w.value.loading=true;p2w.value.err='';p2w.value.done=false;try{const srcBuf=await p2w.value.file.arrayBuffer();const raw=new TextDecoder('latin1').decode(new Uint8Array(srcBuf));const btBlocks=[...raw.matchAll(/BT[\s\S]*?ET/g)];let extracted='';btBlocks.forEach(b=>{[...b[0].matchAll(/\(([^)]*)\)\s*T[jJ]/g)].forEach(m=>extracted+=m[1].replace(/\\n/g,'\n').replace(/\\\(/g,'(').replace(/\\\)/g,')')+' ');[...b[0].matchAll(/\[([^\]]*)\]\s*TJ/g)].forEach(m=>[...m[1].matchAll(/\(([^)]*)\)/g)].forEach(p=>extracted+=p[1]+' '));extracted+='\n';});extracted=extracted.trim()||'[No readable text found]';const enc=new TextEncoder();const docxml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>${escXml(p2w.value.file.name)}</w:t></w:r></w:p>${extracted.split('\n').map(l=>`<w:p><w:r><w:t xml:space="preserve">${escXml(l.trim())}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`;const relsxml=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;const wRels=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;const ct=`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;const zipBytes=buildZip([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(relsxml)},{name:'word/document.xml',data:enc.encode(docxml)},{name:'word/_rels/document.xml.rels',data:enc.encode(wRels)}]);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}));a.download=p2w.value.file.name.replace(/\.pdf$/i,'')+'.docx';a.click();p2w.value.done=true;}catch(e){p2w.value.err='Error: '+e.message;}p2w.value.loading=false;};
 
   return{
@@ -676,6 +777,7 @@ const _vapp=createApp({setup(){
     pdf,addPdfs,addImgs,mergePdfs,imgToPdf,splitPdf,
     w2p,loadDocx,convertW2P,p2w,loadPdfForWord,convertP2W,
     rank,rankSetExam,RANK_EXAMS,parseAK,rankFetchAK,calcRank,
+    ca,calcCaTax,calcCaInvest,calcCaPL,calcCaNW,sipFV,caPortfolioFV,
   };
 }});
 // v-init-text: sets innerText once on mount; only resets if binding value actually changes

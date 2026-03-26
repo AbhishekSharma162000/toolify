@@ -31,7 +31,8 @@ var _u={'/':null,
 '/pdf-watermark':'pdfwatermark','/pdf-page-numbers':'pdfpagenum',
 '/pdf-rotate-pages':'pdfrotatepgs',
 '/pdf-editor':'pdfedit','/word-editor':'wordedit',
-'/rank-calculator':'rank'};
+'/rank-calculator':'rank',
+'/ca-calculator':'cacalc'};
 window._URL_TO_ID=_u;
 window.INITIAL_PAGE=_u[location.pathname]||null;
 })();
