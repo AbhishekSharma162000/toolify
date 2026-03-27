@@ -2191,6 +2191,132 @@
 <div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
 </div>
 
+<!-- PDF COMPRESSOR -->
+<div v-if="page==='pdfcompress'" class="tp">
+  <a class="back" href="/" @click.prevent="goHome">← Back</a>
+  <div class="ttl">📦 PDF Compressor</div>
+  <div class="tsub">Reduce PDF file size — Standard re-compress or Image Optimize mode — runs 100% in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.profitablecpmratenetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+
+  <div style="max-width:580px">
+    <!-- Drop Zone -->
+    <div class="card" style="margin-bottom:14px">
+      <div class="drop"
+        :class="{over:pdfcomp.over}"
+        @dragover.prevent="pdfcomp.over=true"
+        @dragleave="pdfcomp.over=false"
+        @drop.prevent="e=>{pdfcomp.over=false;pdfcompLoad(e.dataTransfer.files[0])}"
+        @click="$refs.pcInp.click()">
+        <div style="font-size:36px;margin-bottom:8px">📦</div>
+        <div v-if="!pdfcomp.file" style="font-size:14px">Drop PDF here or <span style="color:var(--p)">browse</span></div>
+        <div v-else style="font-size:13px">
+          <div style="color:var(--g);font-weight:600">✓ {{pdfcomp.file.name}}</div>
+          <div style="color:var(--muted);margin-top:3px">Original size: <strong>{{fmtB(pdfcomp.origSize)}}</strong></div>
+        </div>
+        <input ref="pcInp" type="file" accept=".pdf" hidden @change="e=>pdfcompLoad(e.target.files[0])"/>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div v-if="pdfcomp.file" class="card" style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Compression Mode</div>
+
+      <!-- Mode cards -->
+      <div class="r2" style="margin-bottom:14px">
+        <div @click="pdfcomp.mode='standard'"
+          :style="{border:'2px solid '+(pdfcomp.mode==='standard'?'var(--p)':'var(--border)'),borderRadius:'10px',padding:'12px',cursor:'pointer',background:pdfcomp.mode==='standard'?'rgba(124,111,255,.08)':'var(--bg2)'}">
+          <div style="font-size:18px;margin-bottom:6px">⚡</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:3px">Standard</div>
+          <div style="font-size:11px;color:var(--muted)">Re-saves with compression. Fast, lossless. Best for text-heavy PDFs.</div>
+          <div style="font-size:11px;color:var(--g);margin-top:4px;font-weight:600">~10–35% smaller</div>
+        </div>
+        <div @click="pdfcomp.mode='render'"
+          :style="{border:'2px solid '+(pdfcomp.mode==='render'?'var(--p)':'var(--border)'),borderRadius:'10px',padding:'12px',cursor:'pointer',background:pdfcomp.mode==='render'?'rgba(124,111,255,.08)':'var(--bg2)'}">
+          <div style="font-size:18px;margin-bottom:6px">🖼️</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:3px">Image Optimize</div>
+          <div style="font-size:11px;color:var(--muted)">Re-renders pages as JPEG. Best for scanned / image-heavy PDFs.</div>
+          <div style="font-size:11px;color:var(--g);margin-top:4px;font-weight:600">~40–80% smaller</div>
+        </div>
+      </div>
+
+      <!-- Image Optimize settings -->
+      <div v-if="pdfcomp.mode==='render'">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Image Settings</div>
+        <div class="f">
+          <label>JPEG Quality — {{pdfcomp.quality}}% <span style="color:var(--muted)">(lower = smaller file)</span></label>
+          <input type="range" min="10" max="95" step="5" v-model.number="pdfcomp.quality"
+            style="width:100%;accent-color:var(--p);margin-top:4px;cursor:pointer"/>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px">
+            <span>10% (tiny)</span><span>50% (balanced)</span><span>95% (crisp)</span>
+          </div>
+        </div>
+        <div class="f">
+          <label>Render DPI <span style="color:var(--muted)">(lower = smaller file, may reduce sharpness)</span></label>
+          <select v-model.number="pdfcomp.dpi">
+            <option value="72">72 DPI — smallest</option>
+            <option value="96">96 DPI — balanced</option>
+            <option value="120">120 DPI — sharp</option>
+            <option value="150">150 DPI — high quality</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn" :disabled="pdfcomp.loading" @click="compressPdf">
+        {{pdfcomp.loading ? pdfcomp.progress||'Processing…' : '📦 Compress PDF'}}
+      </button>
+    </div>
+
+    <!-- Result -->
+    <div v-if="pdfcomp.done" class="card" style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Compression Result</div>
+      <div class="rg">
+        <div class="rb"><div class="rl">Original Size</div><div class="rv re">{{fmtB(pdfcomp.origSize)}}</div></div>
+        <div class="rb"><div class="rl">Compressed Size</div><div class="rv gr">{{fmtB(pdfcomp.newSize)}}</div></div>
+        <div class="rb"><div class="rl">Space Saved</div><div class="rv gr">{{fmtB(pdfcomp.origSize-pdfcomp.newSize)}}</div></div>
+        <div class="rb"><div class="rl">Reduction</div>
+          <div class="rv" :class="pdfcomp.savings>0?'gr':'am'" style="font-size:22px;font-weight:800">
+            {{pdfcomp.savings>0?'-'+pdfcomp.savings+'%':'+'+Math.abs(pdfcomp.savings)+'%'}}
+          </div>
+        </div>
+      </div>
+      <!-- Size bar -->
+      <div style="margin-top:4px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:600">SIZE COMPARISON</div>
+        <div style="background:var(--bg2);border-radius:6px;height:20px;overflow:hidden;border:1px solid var(--border)">
+          <div :style="{width:Math.max(5,Math.round(pdfcomp.newSize/pdfcomp.origSize*100))+'%',height:'100%',background:'var(--g)',borderRadius:'6px',transition:'width .6s',display:'flex',alignItems:'center',paddingLeft:'8px',fontSize:'10px',fontWeight:600,color:'#fff'}">
+            {{Math.round(pdfcomp.newSize/pdfcomp.origSize*100)}}%
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px">
+          <span>Compressed: {{fmtB(pdfcomp.newSize)}}</span>
+          <span>Original: {{fmtB(pdfcomp.origSize)}}</span>
+        </div>
+      </div>
+      <div v-if="pdfcomp.savings<=0" style="margin-top:10px;font-size:12px;color:var(--a)">
+        ⚠️ This PDF is already well-optimised. Try Image Optimize mode for more reduction.
+      </div>
+      <div v-else class="ok">✓ Compressed PDF downloaded successfully!</div>
+    </div>
+
+    <div v-if="pdfcomp.err" class="err" style="margin-top:8px">{{pdfcomp.err}}</div>
+
+    <!-- Tips -->
+    <div class="card" style="background:rgba(124,111,255,.05);border-color:rgba(124,111,255,.2)">
+      <div style="font-size:11px;font-weight:700;color:var(--p);margin-bottom:8px">💡 TIPS</div>
+      <div style="font-size:12px;line-height:1.9;color:var(--muted)">
+        <div>• <strong>Standard mode</strong> works best for PDFs with lots of text, tables, or vector graphics</div>
+        <div>• <strong>Image Optimize</strong> works best for scanned documents, presentations, and photo-heavy PDFs</div>
+        <div>• Lower quality (40–60%) is fine for sharing/email; use 75–85% for printing</div>
+        <div>• All processing runs in your browser — your file is never uploaded anywhere</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.profitablecpmratenetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+
 <!-- CA SUITE -->
 <div v-if="page==='cacalc'" class="tp">
   <a class="back" href="/" @click.prevent="goHome">← Back</a>

@@ -46,7 +46,8 @@ const _vapp=createApp({setup(){
     pdfwatermark:'/pdf-watermark',pdfpagenum:'/pdf-page-numbers',pdfrotatepgs:'/pdf-rotate-pages',
     pdfedit:'/pdf-editor',wordedit:'/word-editor',
     rank:'/rank-calculator',
-    cacalc:'/ca-calculator'
+    cacalc:'/ca-calculator',
+    pdfcompress:'/pdf-compressor'
   };
   const toolUrl=id=>_ID_TO_URL[id]||'/';
   const page=ref(window.INITIAL_PAGE||'home'),search=ref(''),activeCat=ref('All');
@@ -115,6 +116,7 @@ const _vapp=createApp({setup(){
     {id:'pdfpagenum', icon:'🔢',name:'PDF Page Numbers',     desc:'Add page numbers to your PDF',       color:'rgba(255,183,77,.18)', cat:'PDF Tools'},
     {id:'pdfrotatepgs',icon:'🔁',name:'Rotate PDF Pages',   desc:'Rotate all or specific pages',       color:'rgba(124,111,255,.2)', cat:'PDF Tools'},
     {id:'pdfedit',     icon:'✏️',name:'PDF Editor',         desc:'View & annotate PDF with text',      color:'rgba(255,100,100,.18)',cat:'PDF Tools',            hot:true},
+    {id:'pdfcompress', icon:'📦',name:'PDF Compressor',     desc:'Reduce PDF size — up to 80% smaller', color:'rgba(94,240,200,.15)', cat:'PDF Tools',            hot:true},
     {id:'wordedit',    icon:'📝',name:'Word Editor',         desc:'Edit .docx files in your browser',   color:'rgba(94,240,200,.15)', cat:'PDF Tools',            hot:true},
     {id:'rank',        icon:'🏆',name:'Rank Calculator',      desc:'Score & rank predictor for govt exams',color:'rgba(255,183,77,.18)',cat:'Career & Templates',   hot:true},
   ];
@@ -642,6 +644,43 @@ const _vapp=createApp({setup(){
     rank.value.res={score:totalScore,totalCorrect,totalWrong,totalUnattempted,totalQ,accuracy,secRes,pctile,rankMin,rankMax,cutoff:ed.cutoff,userCutoff,selectionChance,vacancies:ed.vacancies,comparison};
   };
 
+  // ── PDF COMPRESSOR ──
+  const pdfcomp=ref({file:null,over:false,loading:false,err:'',done:false,mode:'standard',quality:75,dpi:96,origSize:0,newSize:0,savings:0,progress:''});
+  const pdfcompLoad=file=>{if(!file||file.type!=='application/pdf')return;pdfcomp.value.file=file;pdfcomp.value.origSize=file.size;pdfcomp.value.done=false;pdfcomp.value.err='';pdfcomp.value.progress='';};
+  const compressPdf=async()=>{
+    const s=pdfcomp.value;s.loading=true;s.err='';s.done=false;s.progress='Loading PDF…';
+    try{
+      const buf=await s.file.arrayBuffer();const{PDFDocument}=PDFLib;
+      if(s.mode==='standard'){
+        s.progress='Re-compressing…';
+        const doc=await PDFDocument.load(buf,{ignoreEncryption:true});
+        const out=await doc.save({useObjectStreams:true});
+        s.newSize=out.byteLength;s.savings=Math.round((1-s.newSize/s.origSize)*100);
+        dlPdf(out,'compressed_'+s.file.name);s.done=true;
+      }else{
+        pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER;
+        const src=await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+        const n=src.numPages;const scale=s.dpi/96;
+        const newDoc=await PDFDocument.create();
+        for(let i=1;i<=n;i++){
+          s.progress=`Rendering page ${i} / ${n}…`;
+          const pg=await src.getPage(i);const vp=pg.getViewport({scale});
+          const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
+          await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+          const b64=cv.toDataURL('image/jpeg',s.quality/100).split(',')[1];
+          const imgBytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+          const img=await newDoc.embedJpg(imgBytes);
+          newDoc.addPage([vp.width,vp.height]).drawImage(img,{x:0,y:0,width:vp.width,height:vp.height});
+        }
+        s.progress='Saving…';
+        const out=await newDoc.save({useObjectStreams:true});
+        s.newSize=out.byteLength;s.savings=Math.round((1-s.newSize/s.origSize)*100);
+        dlPdf(out,'compressed_'+s.file.name);s.done=true;
+      }
+    }catch(e){s.err='Error: '+e.message;}
+    s.loading=false;s.progress='';
+  };
+
   // ── CA SUITE ──
   const ca=ref({
     tab:'tax',
@@ -744,7 +783,7 @@ const _vapp=createApp({setup(){
   const convertP2W=async()=>{p2w.value.loading=true;p2w.value.err='';p2w.value.done=false;try{const srcBuf=await p2w.value.file.arrayBuffer();const raw=new TextDecoder('latin1').decode(new Uint8Array(srcBuf));const btBlocks=[...raw.matchAll(/BT[\s\S]*?ET/g)];let extracted='';btBlocks.forEach(b=>{[...b[0].matchAll(/\(([^)]*)\)\s*T[jJ]/g)].forEach(m=>extracted+=m[1].replace(/\\n/g,'\n').replace(/\\\(/g,'(').replace(/\\\)/g,')')+' ');[...b[0].matchAll(/\[([^\]]*)\]\s*TJ/g)].forEach(m=>[...m[1].matchAll(/\(([^)]*)\)/g)].forEach(p=>extracted+=p[1]+' '));extracted+='\n';});extracted=extracted.trim()||'[No readable text found]';const enc=new TextEncoder();const docxml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>${escXml(p2w.value.file.name)}</w:t></w:r></w:p>${extracted.split('\n').map(l=>`<w:p><w:r><w:t xml:space="preserve">${escXml(l.trim())}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`;const relsxml=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;const wRels=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;const ct=`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;const zipBytes=buildZip([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(relsxml)},{name:'word/document.xml',data:enc.encode(docxml)},{name:'word/_rels/document.xml.rels',data:enc.encode(wRels)}]);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}));a.download=p2w.value.file.name.replace(/\.pdf$/i,'')+'.docx';a.click();p2w.value.done=true;}catch(e){p2w.value.err='Error: '+e.message;}p2w.value.loading=false;};
 
   return{
-    fmt,fmtS,cp,dark,toggleTheme,
+    fmt,fmtS,fmtB,cp,dark,toggleTheme,
     page,search,activeCat,cats,filteredTools,visibleSections,goHome,open,toolUrl,pdfTitle,
     fmtDesc,fmtAt,templates,resumeTemplates,rv,downloadResume,
     bgt,bgtTotalIncome,bgtTotalExpense,bgtSavings,downloadBudget,
@@ -777,6 +816,7 @@ const _vapp=createApp({setup(){
     pdf,addPdfs,addImgs,mergePdfs,imgToPdf,splitPdf,
     w2p,loadDocx,convertW2P,p2w,loadPdfForWord,convertP2W,
     rank,rankSetExam,RANK_EXAMS,parseAK,rankFetchAK,calcRank,
+    pdfcomp,pdfcompLoad,compressPdf,
     ca,calcCaTax,calcCaInvest,calcCaPL,calcCaNW,sipFV,caPortfolioFV,
   };
 }});
