@@ -47,6 +47,8 @@
 
 <!-- App styles & routing -->
 <link rel="stylesheet" href="./css/styles.css">
+<link rel="stylesheet" href="./css/lc-builder.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="./js/routes.js"></script>
 </head>
 <body class="dark">
@@ -2765,7 +2767,197 @@
 <div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
 </div>
 
+<!-- ══ LANDING PAGE BUILDER ══ -->
+<!-- ══ LANDING PAGE BUILDER (LandingCraft) ══ -->
+<div id="lc-app" v-show="page==='pagebuilder'">
+
+<!-- TOP NAVBAR -->
+<nav class="topbar">
+
+  <!-- Brand -->
+  <div class="topbar-brand">
+    <i class="fa fa-bolt"></i> LandingCraft
+  </div>
+
+  <!-- Center: Mode toggle + helpers -->
+  <div class="topbar-center">
+    <div class="mode-toggle">
+      <button id="modeEdit" class="mode-btn active" onclick="setMode('edit')">
+        <i class="fa fa-pen"></i> Edit
+      </button>
+      <button id="modePreview" class="mode-btn" onclick="setMode('preview')">
+        <i class="fa fa-eye"></i> Preview
+      </button>
+    </div>
+    <div class="tb-divider"></div>
+    <button class="tb-icon-btn" onclick="undoAction()" title="Undo (Ctrl+Z)"><i class="fa fa-rotate-left"></i></button>
+    <button class="tb-icon-btn" onclick="redoAction()" title="Redo (Ctrl+Y)"><i class="fa fa-rotate-right"></i></button>
+    <button class="tb-icon-btn" onclick="toggleGrid()" id="gridBtn" title="Toggle Grid"><i class="fa fa-border-all"></i></button>
+  </div>
+
+  <!-- Right: Action buttons -->
+  <div class="topbar-right">
+    <button class="tb-btn template-btn" onclick="openTemplates()">
+      <i class="fa fa-layer-group"></i> Templates
+    </button>
+    <button class="tb-btn export-btn" onclick="openExport()">
+      <i class="fa fa-download"></i> Export
+    </button>
+    <button class="tb-btn clear-btn" onclick="clearCanvas()">
+      <i class="fa fa-trash"></i> Clear
+    </button>
+  </div>
+
+</nav>
+
+<!-- MAIN LAYOUT -->
+<div class="app-layout">
+
+  <!-- LEFT SIDEBAR – Components -->
+  <aside class="sidebar left-sidebar">
+    <div class="sidebar-title">Components</div>
+    <div class="component-search">
+      <input type="text" id="compSearch" placeholder="Search components..." oninput="filterComponents(this.value)">
+    </div>
+    <div class="components-list" id="componentsList">
+      <div class="comp-group">
+        <div class="comp-group-title">Layout</div>
+        <div class="comp-item" draggable="true" data-type="section" data-label="Section"><i class="fa fa-square"></i> Section</div>
+        <div class="comp-item" draggable="true" data-type="two-col" data-label="2 Columns"><i class="fa fa-table-columns"></i> 2 Columns</div>
+        <div class="comp-item" draggable="true" data-type="three-col" data-label="3 Columns"><i class="fa fa-grip"></i> 3 Columns</div>
+        <div class="comp-item" draggable="true" data-type="divider" data-label="Divider"><i class="fa fa-minus"></i> Divider</div>
+        <div class="comp-item" draggable="true" data-type="spacer" data-label="Spacer"><i class="fa fa-arrows-up-down"></i> Spacer</div>
+      </div>
+      <div class="comp-group">
+        <div class="comp-group-title">Text</div>
+        <div class="comp-item" draggable="true" data-type="heading" data-label="Heading"><i class="fa fa-heading"></i> Heading</div>
+        <div class="comp-item" draggable="true" data-type="subheading" data-label="Subheading"><i class="fa fa-h"></i> Subheading</div>
+        <div class="comp-item" draggable="true" data-type="paragraph" data-label="Paragraph"><i class="fa fa-align-left"></i> Paragraph</div>
+        <div class="comp-item" draggable="true" data-type="bullet-list" data-label="Bullet List"><i class="fa fa-list-ul"></i> Bullet List</div>
+        <div class="comp-item" draggable="true" data-type="quote" data-label="Blockquote"><i class="fa fa-quote-left"></i> Blockquote</div>
+        <div class="comp-item" draggable="true" data-type="badge" data-label="Badge"><i class="fa fa-tag"></i> Badge</div>
+      </div>
+      <div class="comp-group">
+        <div class="comp-group-title">Media</div>
+        <div class="comp-item" draggable="true" data-type="image" data-label="Image"><i class="fa fa-image"></i> Image</div>
+        <div class="comp-item" draggable="true" data-type="video" data-label="Video Embed"><i class="fa fa-video"></i> Video Embed</div>
+        <div class="comp-item" draggable="true" data-type="icon" data-label="Icon"><i class="fa fa-star"></i> Icon</div>
+        <div class="comp-item" draggable="true" data-type="logo-strip" data-label="Logo Strip"><i class="fa fa-images"></i> Logo Strip</div>
+      </div>
+      <div class="comp-group">
+        <div class="comp-group-title">Marketing</div>
+        <div class="comp-item" draggable="true" data-type="hero" data-label="Hero Section"><i class="fa fa-fire"></i> Hero Section</div>
+        <div class="comp-item" draggable="true" data-type="cta" data-label="CTA Banner"><i class="fa fa-bullhorn"></i> CTA Banner</div>
+        <div class="comp-item" draggable="true" data-type="features" data-label="Features Grid"><i class="fa fa-th"></i> Features Grid</div>
+        <div class="comp-item" draggable="true" data-type="pricing" data-label="Pricing Card"><i class="fa fa-dollar-sign"></i> Pricing Card</div>
+        <div class="comp-item" draggable="true" data-type="testimonial" data-label="Testimonial"><i class="fa fa-comment"></i> Testimonial</div>
+        <div class="comp-item" draggable="true" data-type="faq" data-label="FAQ"><i class="fa fa-circle-question"></i> FAQ</div>
+        <div class="comp-item" draggable="true" data-type="countdown" data-label="Countdown"><i class="fa fa-clock"></i> Countdown</div>
+        <div class="comp-item" draggable="true" data-type="stats" data-label="Stats Bar"><i class="fa fa-chart-bar"></i> Stats Bar</div>
+        <div class="comp-item" draggable="true" data-type="team" data-label="Team Card"><i class="fa fa-users"></i> Team Card</div>
+      </div>
+      <div class="comp-group">
+        <div class="comp-group-title">Forms & CTAs</div>
+        <div class="comp-item" draggable="true" data-type="button" data-label="Button"><i class="fa fa-cursor"></i> Button</div>
+        <div class="comp-item" draggable="true" data-type="email-form" data-label="Email Capture"><i class="fa fa-envelope"></i> Email Capture</div>
+        <div class="comp-item" draggable="true" data-type="contact-form" data-label="Contact Form"><i class="fa fa-paper-plane"></i> Contact Form</div>
+        <div class="comp-item" draggable="true" data-type="newsletter" data-label="Newsletter"><i class="fa fa-newspaper"></i> Newsletter</div>
+      </div>
+      <div class="comp-group">
+        <div class="comp-group-title">Navigation</div>
+        <div class="comp-item" draggable="true" data-type="navbar" data-label="Navbar"><i class="fa fa-bars"></i> Navbar</div>
+        <div class="comp-item" draggable="true" data-type="footer" data-label="Footer"><i class="fa fa-shoe-prints"></i> Footer</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CANVAS AREA -->
+  <main class="canvas-wrapper">
+    <div class="canvas-toolbar">
+      <span class="canvas-size-label">Width:</span>
+      <button class="size-btn active" onclick="setCanvasSize('desktop')" title="Desktop"><i class="fa fa-desktop"></i></button>
+      <button class="size-btn" onclick="setCanvasSize('tablet')" title="Tablet"><i class="fa fa-tablet"></i></button>
+      <button class="size-btn" onclick="setCanvasSize('mobile')" title="Mobile"><i class="fa fa-mobile"></i></button>
+      <span class="canvas-dim-label" id="canvasDimLabel">1200px</span>
+    </div>
+    <div class="canvas-scroll">
+      <div id="canvas" class="canvas desktop-canvas">
+        <div class="canvas-empty-state" id="emptyState">
+          <i class="fa fa-arrow-pointer fa-2x"></i>
+          <p>Drag components here or choose a template</p>
+          <button class="btn-primary" onclick="openTemplates()">Browse Templates</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT SIDEBAR – Properties -->
+  <aside class="sidebar right-sidebar" id="rightSidebar">
+    <div class="sidebar-title">Properties</div>
+    <div id="propertiesPanel">
+      <div class="no-selection">
+        <i class="fa fa-mouse-pointer"></i>
+        <p>Click an element to edit its properties</p>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- TEMPLATES MODAL -->
+<div class="modal-overlay" id="templatesModal">
+  <div class="modal large-modal">
+    <div class="modal-header">
+      <h2><i class="fa fa-th-large"></i> Templates</h2>
+      <button class="modal-close" onclick="closeModal('templatesModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="template-filters">
+      <button class="filter-btn active" onclick="filterTemplates('all', this)">All</button>
+      <button class="filter-btn" onclick="filterTemplates('saas', this)">SaaS</button>
+      <button class="filter-btn" onclick="filterTemplates('ecommerce', this)">E-Commerce</button>
+      <button class="filter-btn" onclick="filterTemplates('agency', this)">Agency</button>
+      <button class="filter-btn" onclick="filterTemplates('startup', this)">Startup</button>
+      <button class="filter-btn" onclick="filterTemplates('webinar', this)">Webinar</button>
+      <button class="filter-btn" onclick="filterTemplates('portfolio', this)">Portfolio</button>
+    </div>
+    <div class="templates-grid" id="templatesGrid"></div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2><i class="fa fa-download"></i> Export</h2>
+      <button class="modal-close" onclick="closeModal('exportModal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="export-options">
+      <div class="export-card" onclick="exportHTML()"><i class="fa fa-code fa-2x"></i><h3>HTML File</h3><p>Download a clean standalone HTML page</p></div>
+      <div class="export-card" onclick="exportZip()"><i class="fa fa-file-zipper fa-2x"></i><h3>ZIP Package</h3><p>HTML + CSS + assets bundled</p></div>
+      <div class="export-card" onclick="copyHTMLToClipboard()"><i class="fa fa-clipboard fa-2x"></i><h3>Copy HTML</h3><p>Copy generated HTML to clipboard</p></div>
+    </div>
+    <div class="export-settings">
+      <label>Page Title: <input type="text" id="exportTitle" value="My Landing Page"></label>
+      <label>Meta Description: <input type="text" id="exportMeta" placeholder="Enter page description..."></label>
+    </div>
+  </div>
+</div>
+
+<!-- COLOR PICKER OVERLAY -->
+<div class="color-picker-overlay" id="colorPickerOverlay" style="display:none;">
+  <div class="color-picker-popup">
+    <div class="preset-colors" id="presetColors"></div>
+    <input type="color" id="customColorInput">
+    <button onclick="applyColor()">Apply</button>
+    <button onclick="document.getElementById('colorPickerOverlay').style.display='none'">Cancel</button>
+  </div>
+</div>
+
+</div>
+
 </div><!-- #app -->
 <script src="./js/app.js"></script>
+<script src="./js/lc-templates.js"></script>
+<script src="./js/lc-builder.js"></script>
 </body>
 </html>

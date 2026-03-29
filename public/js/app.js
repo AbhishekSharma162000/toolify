@@ -47,7 +47,8 @@ const _vapp=createApp({setup(){
     pdfedit:'/pdf-editor',wordedit:'/word-editor',
     rank:'/rank-calculator',
     cacalc:'/ca-calculator',
-    pdfcompress:'/pdf-compressor'
+    pdfcompress:'/pdf-compressor',
+    pagebuilder:'/landing-page-builder'
   };
   const toolUrl=id=>_ID_TO_URL[id]||'/';
   const page=ref(window.INITIAL_PAGE||'home'),search=ref(''),activeCat=ref('All');
@@ -119,6 +120,7 @@ const _vapp=createApp({setup(){
     {id:'pdfcompress', icon:'📦',name:'PDF Compressor',     desc:'Reduce PDF size — up to 80% smaller', color:'rgba(94,240,200,.15)', cat:'PDF Tools',            hot:true},
     {id:'wordedit',    icon:'📝',name:'Word Editor',         desc:'Edit .docx files in your browser',   color:'rgba(94,240,200,.15)', cat:'PDF Tools',            hot:true},
     {id:'rank',        icon:'🏆',name:'Rank Calculator',      desc:'Score & rank predictor for govt exams',color:'rgba(255,183,77,.18)',cat:'Career & Templates',   hot:true},
+    {id:'pagebuilder', icon:'🚀',name:'Landing Page Builder',  desc:'Drag-and-drop sections, templates, download HTML',color:'rgba(124,111,255,.2)',cat:'Career & Templates',hot:true},
   ];
 
   const filteredTools=computed(()=>allTools.filter(t=>
@@ -781,6 +783,8 @@ const _vapp=createApp({setup(){
   };
 
   const convertP2W=async()=>{p2w.value.loading=true;p2w.value.err='';p2w.value.done=false;try{const srcBuf=await p2w.value.file.arrayBuffer();const raw=new TextDecoder('latin1').decode(new Uint8Array(srcBuf));const btBlocks=[...raw.matchAll(/BT[\s\S]*?ET/g)];let extracted='';btBlocks.forEach(b=>{[...b[0].matchAll(/\(([^)]*)\)\s*T[jJ]/g)].forEach(m=>extracted+=m[1].replace(/\\n/g,'\n').replace(/\\\(/g,'(').replace(/\\\)/g,')')+' ');[...b[0].matchAll(/\[([^\]]*)\]\s*TJ/g)].forEach(m=>[...m[1].matchAll(/\(([^)]*)\)/g)].forEach(p=>extracted+=p[1]+' '));extracted+='\n';});extracted=extracted.trim()||'[No readable text found]';const enc=new TextEncoder();const docxml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>${escXml(p2w.value.file.name)}</w:t></w:r></w:p>${extracted.split('\n').map(l=>`<w:p><w:r><w:t xml:space="preserve">${escXml(l.trim())}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`;const relsxml=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;const wRels=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;const ct=`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;const zipBytes=buildZip([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(relsxml)},{name:'word/document.xml',data:enc.encode(docxml)},{name:'word/_rels/document.xml.rels',data:enc.encode(wRels)}]);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}));a.download=p2w.value.file.name.replace(/\.pdf$/i,'')+'.docx';a.click();p2w.value.done=true;}catch(e){p2w.value.err='Error: '+e.message;}p2w.value.loading=false;};
+
+  // ── LANDING PAGE BUILDER (vanilla JS — see lc-templates.js + lc-builder.js) ──
 
   return{
     fmt,fmtS,fmtB,cp,dark,toggleTheme,
