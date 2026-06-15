@@ -85,7 +85,7 @@
   <template v-for="sec in visibleSections" :key="sec.label">
     <div class="sec-lbl">{{sec.label}}</div>
     <div class="grid">
-      <a v-for="t in sec.tools" :key="t.id" class="tc" :href="toolUrl(t.id)" @click.prevent="open(t.id)">
+      <a v-for="t in sec.tools" :key="t.id" class="tc" :href="t.external||toolUrl(t.id)" :target="t.external?'_blank':'_self'" @click="t.external?null:($event.preventDefault(),open(t.id))">
         <div class="ti" :style="{background:t.color}">{{t.icon}}</div>
         <div class="tn">{{t.name}}</div>
         <div class="td">{{t.desc}}</div>

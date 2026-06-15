@@ -48,11 +48,12 @@ const _vapp=createApp({setup(){
     rank:'/rank-calculator',
     cacalc:'/ca-calculator',
     pdfcompress:'/pdf-compressor',
-    pagebuilder:'/landing-page-builder'
+    pagebuilder:'/landing-page-builder',
+    ytdl:'/youtube-downloader/'
   };
   const toolUrl=id=>_ID_TO_URL[id]||'/';
   const page=ref(window.INITIAL_PAGE||'home'),search=ref(''),activeCat=ref('All');
-  const cats=['All','Finance','Real Estate','Health & Fitness','Career & Templates','Text & Dev','Converters','PDF Tools','Image Tools'];
+  const cats=['All','Finance','Real Estate','Health & Fitness','Career & Templates','Text & Dev','Converters','PDF Tools','Image Tools','Media Tools'];
 
   const allTools=[
     {id:'emi',       icon:'🏦',name:'EMI Calculator',          desc:'Monthly EMI & amortization',          color:'rgba(124,111,255,.2)',cat:'Finance',             popular:true},
@@ -121,20 +122,21 @@ const _vapp=createApp({setup(){
     {id:'wordedit',    icon:'📝',name:'Word Editor',         desc:'Edit .docx files in your browser',   color:'rgba(94,240,200,.15)', cat:'PDF Tools',            hot:true},
     {id:'rank',        icon:'🏆',name:'Rank Calculator',      desc:'Score & rank predictor for govt exams',color:'rgba(255,183,77,.18)',cat:'Career & Templates',   hot:true},
     {id:'pagebuilder', icon:'🚀',name:'Landing Page Builder',  desc:'Drag-and-drop sections, templates, download HTML',color:'rgba(124,111,255,.2)',cat:'Career & Templates',hot:true},
+    {id:'ytdl',        icon:'📥',name:'YouTube Downloader',    desc:'Download videos, audio & playlists as MP4/MP3',  color:'rgba(255,68,68,.18)',  cat:'Media Tools',         hot:true,external:'/youtube-downloader/'},
   ];
 
   const filteredTools=computed(()=>allTools.filter(t=>
     (activeCat.value==='All'||t.cat===activeCat.value)&&
     (!search.value||t.name.toLowerCase().includes(search.value.toLowerCase())||t.desc.toLowerCase().includes(search.value.toLowerCase()))
   ));
-  const sectionOrder=['Finance','Real Estate','Health & Fitness','Career & Templates','Text & Dev','Converters','PDF Tools','Image Tools'];
+  const sectionOrder=['Finance','Real Estate','Health & Fitness','Career & Templates','Text & Dev','Converters','PDF Tools','Image Tools','Media Tools'];
   const visibleSections=computed(()=>{
     const m={};
     filteredTools.value.forEach(t=>{if(!m[t.cat])m[t.cat]=[];m[t.cat].push(t);});
     return sectionOrder.filter(c=>m[c]).map(c=>({label:c,tools:m[c]}));
   });
   const goHome=()=>{page.value='home';history.pushState({},'','/');window.scrollTo(0,0);};
-  const open=id=>{page.value=id;history.pushState({id},'',toolUrl(id));window.scrollTo(0,0);};
+  const open=id=>{const tool=allTools.find(t=>t.id===id);if(tool?.external){window.open(tool.external,'_blank');return;}page.value=id;history.pushState({id},'',toolUrl(id));window.scrollTo(0,0);};
   window.addEventListener('popstate',()=>{page.value=window._URL_TO_ID[location.pathname]||'home';});
   window.addEventListener('resize',()=>{try{if(pdfed.value.loaded)pdfedUpdateScale();}catch(e){}});
   const pdfTitle=computed(()=>({merge:'🔗 Merge PDF',img2pdf:'🖼️ Image to PDF',split:'✂️ Split PDF',word2pdf:'📄 Word to PDF',pdf2word:'📝 PDF to Word'}[page.value]||''));
