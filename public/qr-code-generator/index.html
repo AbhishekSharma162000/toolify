@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QR Code Generator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">📱 QR Code Generator</div><div class="tsub">QR for URLs, text, phone numbers</div>
+  <div class="card" style="max-width:480px">
+    <div class="f"><label>Content</label><input v-model="qr.text" placeholder="https://example.com"/></div>
+    <div class="r2"><div class="f"><label>Size</label><select v-model.number="qr.size"><option value="150">150px</option><option value="200">200px</option><option value="300">300px</option></select></div><div class="f"><label>Format</label><select v-model="qr.format"><option value="png">PNG</option><option value="svg">SVG</option></select></div></div>
+    <div v-if="qr.text" style="background:var(--bg2);border-radius:10px;padding:16px;display:flex;justify-content:center;margin-top:10px;border:1px solid var(--border)">
+      <img :src="qrUrl" :width="qr.size" :height="qr.size" alt="QR" style="border-radius:6px;background:#fff;padding:6px"/>
+    </div>
+    <a v-if="qr.text" :href="qrUrl" :download="'qr.'+qr.format" class="btn" style="display:block;text-align:center;text-decoration:none;margin-top:10px">⬇ Download QR</a>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const cp=_cp;
+  const qr=ref({text:'',size:200,format:'png'});
+  const qrUrl=computed(()=>`https://api.qrserver.com/v1/create-qr-code/?size=${qr.value.size}x${qr.value.size}&data=${encodeURIComponent(qr.value.text)}&format=${qr.value.format}`);
+  return {dark,toggleTheme,qr,qrUrl};
+}}).mount('#app');
+</script>
+</body>
+</html>

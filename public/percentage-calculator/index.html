@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Percentage Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">📐 Percentage Calculator</div><div class="tsub">Three types — instant results</div>
+  <div class="pcards">
+    <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:12px">What is X% of Y?</div><div class="r2"><div class="f"><label>%</label><input v-model.number="pc.a.x" type="number" placeholder="15"/></div><div class="f"><label>Of</label><input v-model.number="pc.a.y" type="number" placeholder="200"/></div></div><div v-if="pc.a.x&&pc.a.y" class="ans">= <span class="ac">{{(pc.a.x*pc.a.y/100).toFixed(2)}}</span></div></div>
+    <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:12px">X is what % of Y?</div><div class="r2"><div class="f"><label>X</label><input v-model.number="pc.b.x" type="number" placeholder="30"/></div><div class="f"><label>Y</label><input v-model.number="pc.b.y" type="number" placeholder="200"/></div></div><div v-if="pc.b.x&&pc.b.y" class="ans">= <span class="ac">{{(pc.b.x/pc.b.y*100).toFixed(2)}}%</span></div></div>
+    <div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:12px">% Change</div><div class="r2"><div class="f"><label>From</label><input v-model.number="pc.c.x" type="number" placeholder="100"/></div><div class="f"><label>To</label><input v-model.number="pc.c.y" type="number" placeholder="125"/></div></div><div v-if="pc.c.x&&pc.c.y" class="ans">= <span :class="pc.c.y>=pc.c.x?'gr':'re'">{{((pc.c.y-pc.c.x)/pc.c.x*100).toFixed(2)}}%</span> {{pc.c.y>=pc.c.x?'↑':'↓'}}</div></div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const pc=ref({a:{x:'',y:''},b:{x:'',y:''},c:{x:'',y:''}});
+
+  return {dark,toggleTheme,fmt,fmtS,pc};
+}}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Business Letterhead Generator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">✉️ Business Letterhead</div>
+  <div class="tsub">Professional branded letterhead — fill &amp; download PDF</div>
+  <div class="cl">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px">COMPANY DETAILS</div>
+        <div class="f"><label>Company Name</label><input v-model="lh.company" placeholder="ABC Enterprises Pvt Ltd"/></div>
+        <div class="f"><label>Tagline</label><input v-model="lh.tagline" placeholder="Quality IT Solutions Since 2015"/></div>
+        <div class="r2">
+          <div class="f"><label>Phone</label><input v-model="lh.phone" placeholder="+91 98765 43210"/></div>
+          <div class="f"><label>Email</label><input v-model="lh.email" placeholder="info@abc.com"/></div>
+        </div>
+        <div class="f"><label>Website</label><input v-model="lh.website" placeholder="www.abc.com"/></div>
+        <div class="f"><label>Address</label><textarea v-model="lh.address" placeholder="123 Business Park, Mumbai" style="min-height:50px"></textarea></div>
+        <div class="r2">
+          <div class="f"><label>GSTIN</label><input v-model="lh.gstin" placeholder="22AAAAA0000A1Z5"/></div>
+          <div class="f"><label>CIN / PAN</label><input v-model="lh.cin" placeholder="U72200MH2015PTC123456"/></div>
+        </div>
+        <div class="f"><label>Brand Color</label><input v-model="lh.color" type="color" style="width:100%;height:40px;padding:3px;cursor:pointer"/></div>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px">LETTER CONTENT</div>
+        <div class="r2">
+          <div class="f"><label>Date</label><input v-model="lh.date" type="date"/></div>
+          <div class="f"><label>Ref No.</label><input v-model="lh.ref" placeholder="ABC/2025/001"/></div>
+        </div>
+        <div class="f"><label>To (Recipient)</label><textarea v-model="lh.to" placeholder="The Manager,&#10;XYZ Corporation,&#10;Delhi" style="min-height:60px"></textarea></div>
+        <div class="f"><label>Subject</label><input v-model="lh.subject" placeholder="Quotation for Web Development"/></div>
+        <div class="f"><label>Body</label><textarea v-model="lh.body" style="min-height:140px"></textarea></div>
+        <div class="r2">
+          <div class="f"><label>Closing</label><input v-model="lh.closing" placeholder="Yours sincerely,"/></div>
+          <div class="f"><label>Your Name</label><input v-model="lh.signer" placeholder="Rahul Sharma"/></div>
+        </div>
+        <div class="f"><label>Designation</label><input v-model="lh.designation" placeholder="Managing Director"/></div>
+      </div>
+      <button class="btn" @click="downloadLetterhead">⬇ Download Letterhead PDF</button>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">LIVE PREVIEW</div>
+      <div style="background:#fff;color:#1a1a2e;border-radius:10px;font-size:11px;line-height:1.7;border:1px solid var(--border);overflow:hidden;max-height:600px;overflow-y:auto">
+        <div :style="{background:lh.color,padding:'16px 20px',color:'#fff'}">
+          <div style="font-size:18px;font-weight:800">{{lh.company||'Your Company Name'}}</div>
+          <div style="font-size:10px;opacity:.85">{{lh.tagline}}</div>
+        </div>
+        <div style="background:#f8f8ff;padding:7px 20px;font-size:10px;color:#555;display:flex;gap:14px;flex-wrap:wrap;border-bottom:1px solid #eee">
+          <span v-if="lh.phone">📞 {{lh.phone}}</span>
+          <span v-if="lh.email">✉️ {{lh.email}}</span>
+          <span v-if="lh.website">🌐 {{lh.website}}</span>
+        </div>
+        <div style="padding:18px 20px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:10px;color:#888">
+            <span>Date: {{lh.date}}</span><span>Ref: {{lh.ref}}</span>
+          </div>
+          <div style="white-space:pre-line;color:#333;margin-bottom:12px;font-size:11px">{{lh.to}}</div>
+          <div v-if="lh.subject" style="font-weight:700;margin-bottom:8px">Sub: {{lh.subject}}</div>
+          <div style="white-space:pre-line;color:#333;font-size:11px;margin-bottom:18px">{{lh.body}}</div>
+          <div style="font-size:11px">{{lh.closing}}</div>
+          <div style="height:28px"></div>
+          <div style="font-weight:700">{{lh.signer}}</div>
+          <div style="font-size:10px;color:#666">{{lh.designation}} · {{lh.company}}</div>
+        </div>
+        <div :style="{background:lh.color+'22',padding:'8px 20px',borderTop:'1px solid '+lh.color+'44',textAlign:'center',fontSize:'10px',color:'#555'}">
+          {{lh.address}} <span v-if="lh.gstin">| GSTIN: {{lh.gstin}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS, dlPdf=_dlPdf;
+
+  const lh=ref({company:'',tagline:'',phone:'',email:'',website:'',address:'',gstin:'',cin:'',color:'#7c6fff',date:new Date().toISOString().split('T')[0],ref:'',to:'',subject:'',body:'Dear Sir/Madam,\n\nWith reference to the above subject...\n\nWe hope to hear from you soon.',closing:'Yours sincerely,',signer:'',designation:''});
+  const downloadLetterhead=async()=>{
+    const{PDFDocument,StandardFonts,rgb}=PDFLib;
+    const doc=await PDFDocument.create();
+    const pg=doc.addPage([595,842]);
+    const font=await doc.embedFont(StandardFonts.Helvetica);
+    const bold=await doc.embedFont(StandardFonts.HelveticaBold);
+    const{width:w,height:h}=pg.getSize();
+    const lm2=48,rm=w-48;let y=h-48;
+    const hr=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(lh.value.color||'#7c6fff');
+    const col=hr?rgb(parseInt(hr[1],16)/255,parseInt(hr[2],16)/255,parseInt(hr[3],16)/255):rgb(0.48,0.44,1);
+    pg.drawRectangle({x:0,y:h-90,width:w,height:90,color:col});
+    pg.drawText(lh.value.company||'Company Name',{x:lm2,y:h-46,size:20,font:bold,color:rgb(1,1,1)});
+    pg.drawText(lh.value.tagline||'',{x:lm2,y:h-66,size:10,font,color:rgb(0.9,0.9,0.9)});
+    const contacts=[lh.value.phone&&'Ph: '+lh.value.phone,lh.value.email&&'Email: '+lh.value.email,lh.value.website&&lh.value.website].filter(Boolean).join('   |   ');
+    if(contacts)pg.drawText(contacts,{x:lm2,y:h-83,size:8,font,color:rgb(0.9,0.9,0.9)});
+    y=h-110;
+    pg.drawText('Date: '+(lh.value.date||''),{x:lm2,y,size:10,font,color:rgb(0.3,0.3,0.3)});
+    if(lh.value.ref)pg.drawText('Ref: '+lh.value.ref,{x:rm-80,y,size:10,font,color:rgb(0.3,0.3,0.3)});
+    y-=20;
+    if(lh.value.to){lh.value.to.split('\n').forEach(line=>{pg.drawText(line,{x:lm2,y,size:10,font,color:rgb(0.1,0.1,0.1)});y-=14;});}
+    y-=6;
+    if(lh.value.subject){pg.drawText('Sub: '+lh.value.subject,{x:lm2,y,size:10,font:bold,color:rgb(0.1,0.1,0.1)});y-=20;}
+    const wrapL=text=>{const ws=String(text||'').split(' ');const ls=[];let cur='';for(const wrd of ws){const t=cur?cur+' '+wrd:wrd;if(font.widthOfTextAtSize(t,10)<=rm-lm2){cur=t;}else{if(cur)ls.push(cur);cur=wrd;}}if(cur)ls.push(cur);return ls.length?ls:[''];};
+    lh.value.body.split('\n').forEach(line=>{if(!line.trim()){y-=8;return;}wrapL(line).forEach(l=>{pg.drawText(l,{x:lm2,y,size:10,font,color:rgb(0.1,0.1,0.1)});y-=14;});});
+    y-=20;
+    pg.drawText(lh.value.closing||'Yours sincerely,',{x:lm2,y,size:10,font,color:rgb(0.1,0.1,0.1)});y-=40;
+    pg.drawText(lh.value.signer||'Authorised Signatory',{x:lm2,y,size:11,font:bold,color:rgb(0.1,0.1,0.1)});y-=14;
+    pg.drawText(lh.value.designation||'',{x:lm2,y,size:10,font,color:rgb(0.3,0.3,0.3)});y-=12;
+    pg.drawText(lh.value.company||'',{x:lm2,y,size:10,font,color:rgb(0.3,0.3,0.3)});
+    pg.drawRectangle({x:0,y:0,width:w,height:36,color:col});
+    pg.drawText(((lh.value.address||'Address')+(lh.value.gstin?' | GSTIN: '+lh.value.gstin:'')).slice(0,90),{x:lm2,y:14,size:8,font,color:rgb(1,1,1)});
+    const bytes=await doc.save();
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));a.download='letterhead.pdf';a.click();
+  };
+
+  return {dark,toggleTheme,lh,downloadLetterhead};
+}}).mount('#app');
+</script>
+</body>
+</html>

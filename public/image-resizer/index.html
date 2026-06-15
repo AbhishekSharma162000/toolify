@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image Resizer — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">↔️ Image Resizer</div><div class="tsub">Resize images to any dimension — runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>irLoad(e.dataTransfer.files[0])" @click="$refs.irInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">↔️</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="irInp" type="file" accept="image/*" hidden @change="e=>irLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="ir.src" style="margin-top:14px">
+      <div class="rg">
+        <div class="rb"><div class="rl">Original W</div><div class="rv">{{ir.origW}}px</div></div>
+        <div class="rb"><div class="rl">Original H</div><div class="rv">{{ir.origH}}px</div></div>
+      </div>
+      <div class="r2">
+        <div class="f"><label>Width (px)</label><input v-model.number="ir.w" type="number" min="1" @input="irAspect('w')"/></div>
+        <div class="f"><label>Height (px)</label><input v-model.number="ir.h" type="number" min="1" @input="irAspect('h')"/></div>
+      </div>
+      <div class="f" style="margin-bottom:10px"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" v-model="ir.lock" style="width:auto"/>Lock aspect ratio</label></div>
+      <div class="tabs" style="margin-bottom:10px">
+        <button class="tab" @click="ir.w=320;ir.h=320;ir.lock=false">320×320</button>
+        <button class="tab" @click="ir.w=800;ir.h=600;ir.lock=false">800×600</button>
+        <button class="tab" @click="ir.w=1280;ir.h=720;ir.lock=false">1280×720</button>
+        <button class="tab" @click="ir.w=1920;ir.h=1080;ir.lock=false">1920×1080</button>
+      </div>
+      <div class="f"><label>Output Format</label><select v-model="ir.fmt"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div>
+      <button class="btn" @click="irProcess">↔️ Resize & Download</button>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmtB=_fmtB, loadImgSrc=_loadImgSrc, dlCanvas=_dlCanvas, extFromFmt=_extFromFmt;
+
+  const ir=ref({src:null,origW:0,origH:0,w:0,h:0,lock:true,fmt:'image/jpeg'});
+  const irLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{ir.value={src:e.target.result,origW:img.width,origH:img.height,w:img.width,h:img.height,lock:true,fmt:'image/jpeg'};};img.src=e.target.result;};r.readAsDataURL(file);};
+  const irAspect=changed=>{if(!ir.value.lock||!ir.value.origW)return;const ratio=ir.value.origW/ir.value.origH;if(changed==='w')ir.value.h=Math.round(ir.value.w/ratio);else ir.value.w=Math.round(ir.value.h*ratio);};
+  const irProcess=async()=>{const v=ir.value;if(!v.src)return;const img=await loadImgSrc(v.src);const c=document.createElement('canvas');c.width=v.w;c.height=v.h;c.getContext('2d').drawImage(img,0,0,v.w,v.h);dlCanvas(c,v.fmt,92,'resized');};
+
+  return {dark,toggleTheme, ir,irLoad,irAspect,irProcess};
+}}).mount('#app');
+</script>
+</body>
+</html>

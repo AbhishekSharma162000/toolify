@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Income Tax Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">💹 Income Tax Calculator</div><div class="tsub">India FY 2024-25 — New &amp; Old Regime</div>
+  <div class="cl">
+    <div class="card">
+      <div class="f"><label>Annual Income (₹)</label><input v-model.number="tax.income" type="number" placeholder="1200000"/></div>
+      <div class="f"><label>Regime</label><select v-model="tax.regime"><option value="new">New Regime</option><option value="old">Old Regime</option></select></div>
+      <template v-if="tax.regime==='old'">
+        <div class="f"><label>80C (max ₹1.5L)</label><input v-model.number="tax.ded" type="number" placeholder="150000"/></div>
+        <div class="f"><label>HRA Exemption</label><input v-model.number="tax.hra" type="number" placeholder="0"/></div>
+      </template>
+      <button class="btn" @click="calcTax">Calculate</button>
+    </div>
+    <div v-if="tax.res" class="card">
+      <div class="rg">
+        <div class="rb"><div class="rl">Gross</div><div class="rv">₹{{fmt(tax.income)}}</div></div>
+        <div class="rb"><div class="rl">Taxable</div><div class="rv ac">₹{{fmt(tax.res.taxable)}}</div></div>
+        <div class="rb"><div class="rl">Total Tax</div><div class="rv re">₹{{fmt(tax.res.tax)}}</div></div>
+        <div class="rb"><div class="rl">Monthly In-Hand</div><div class="rv gr">₹{{fmt(Math.round((tax.income-tax.res.tax)/12))}}</div></div>
+      </div>
+      <div class="slabs"><div class="rl" style="margin-bottom:8px">Slab Breakdown</div>
+        <div v-for="s in tax.res.slabs" :key="s.l" class="sr"><span>{{s.l}}</span><span style="font-weight:600">₹{{fmt(s.t)}}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const tax=ref({income:1200000,regime:'new',ded:150000,hra:0,res:null});
+  const calcTax=()=>{
+    let taxable=tax.value.income,slabs=[];
+    if(tax.value.regime==='old'){
+      taxable-=Math.min(tax.value.ded,150000);
+      taxable-=tax.value.hra;
+      taxable-=50000;
+      taxable=Math.max(0,taxable);
+    } else taxable=Math.max(0,taxable-75000);
+    const s=tax.value.regime==='new'
+      ?[[300000,0],[300000,.05],[300000,.1],[300000,.15],[300000,.2],[Infinity,.3]]
+      :[[250000,0],[250000,.05],[500000,.2],[Infinity,.3]];
+    let t=0,rem=taxable;
+    for(const[lim,rate]of s){
+      const chunk=Math.min(rem,lim);
+      t+=chunk*rate;
+      rem-=chunk;
+      if(chunk*rate>0)slabs.push({l:'@ '+rate*100+'%',t:Math.round(chunk*rate)});
+      if(rem<=0)break;
+    }
+    tax.value.res={taxable,tax:Math.round(t*1.04),slabs};
+  };
+
+  return {dark,toggleTheme,fmt,fmtS,tax,calcTax};
+}}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EMI / Loan Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">🏦 EMI / Loan Calculator</div><div class="tsub">Monthly EMI, total interest &amp; amortization</div>
+  <div class="cl">
+    <div class="card">
+      <div class="f"><label>Loan Amount (₹)</label><input v-model.number="emi.p" type="number" placeholder="500000"/></div>
+      <div class="f"><label>Interest Rate (%/year)</label><input v-model.number="emi.r" type="number" step="0.1" placeholder="8.5"/></div>
+      <div class="f"><label>Tenure (months)</label><input v-model.number="emi.n" type="number" placeholder="60"/></div>
+      <button class="btn" @click="calcEmi">Calculate EMI</button>
+    </div>
+    <div v-if="emi.res" class="card">
+      <div class="rg">
+        <div class="rb"><div class="rl">Monthly EMI</div><div class="rv ac">₹{{fmt(emi.res.emi)}}</div></div>
+        <div class="rb"><div class="rl">Total Payment</div><div class="rv">₹{{fmt(emi.res.total)}}</div></div>
+        <div class="rb"><div class="rl">Interest</div><div class="rv re">₹{{fmt(emi.res.interest)}}</div></div>
+        <div class="rb"><div class="rl">Principal</div><div class="rv gr">₹{{fmt(emi.p)}}</div></div>
+      </div>
+      <div class="bw">
+        <div class="bar gb" :style="{width:(emi.p/emi.res.total*100).toFixed(1)+'%'}">{{(emi.p/emi.res.total*100).toFixed(0)}}%</div>
+        <div class="bar rb2" :style="{width:(emi.res.interest/emi.res.total*100).toFixed(1)+'%'}">{{(emi.res.interest/emi.res.total*100).toFixed(0)}}%</div>
+      </div>
+      <div style="max-height:180px;overflow-y:auto;border-radius:7px;border:1px solid var(--border)">
+        <table class="tbl"><tr><th>Mo.</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Balance</th></tr>
+          <tr v-for="row in emi.res.schedule.slice(0,emi.showAll?999:5)" :key="row.m"><td>{{row.m}}</td><td>₹{{fmt(row.emi)}}</td><td>₹{{fmt(row.prin)}}</td><td>₹{{fmt(row.int)}}</td><td>₹{{fmt(row.bal)}}</td></tr>
+        </table>
+      </div>
+      <button v-if="!emi.showAll" style="width:100%;padding:6px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:7px;cursor:pointer;font-size:11px;margin-top:6px" @click="emi.showAll=true">Show all months</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const emi=ref({p:500000,r:8.5,n:60,res:null,showAll:false});
+  const calcEmi=()=>{
+    const r=emi.value.r/100/12, n=emi.value.n, p=emi.value.p;
+    const e=p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1), total=e*n;
+    const sched=[];let bal=p;
+    for(let i=1;i<=n;i++){const int=bal*r,prin=e-int;bal=Math.max(0,bal-prin);sched.push({m:i,emi:Math.round(e),prin:Math.round(prin),int:Math.round(int),bal:Math.round(bal)});}
+    emi.value.res={emi:e.toFixed(2),total:total.toFixed(2),interest:(total-p).toFixed(2),schedule:sched};
+    emi.value.showAll=false;
+  };
+
+  return {dark,toggleTheme,fmt,fmtS,emi,calcEmi};
+}}).mount('#app');
+</script>
+</body>
+</html>

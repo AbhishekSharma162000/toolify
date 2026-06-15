@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CA Calculator Suite — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">🧮 CA Suite</div>
+  <div class="tsub">Tax Planner · Investment Advisor · Profit &amp; Loss · Net Worth — All India FY 2024-25</div>
+
+  <div class="tabs">
+    <button :class="['tab',ca.tab==='tax'&&'active']" @click="ca.tab='tax'">💹 Tax Planner</button>
+    <button :class="['tab',ca.tab==='invest'&&'active']" @click="ca.tab='invest'">📊 Investment Advisor</button>
+    <button :class="['tab',ca.tab==='pl'&&'active']" @click="ca.tab='pl'">📈 Profit &amp; Loss</button>
+    <button :class="['tab',ca.tab==='nw'&&'active']" @click="ca.tab='nw'">🏦 Net Worth</button>
+  </div>
+
+  <!-- ── TAB 1: TAX PLANNER ── -->
+  <template v-if="ca.tab==='tax'">
+    <div class="cl">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Income Details</div>
+          <div class="r2">
+            <div class="f"><label>Annual Gross Income (₹)</label><input v-model.number="ca.tax.income" type="number" placeholder="1200000"/></div>
+            <div class="f"><label>Income Source</label>
+              <select v-model="ca.tax.source">
+                <option value="salary">Salaried</option>
+                <option value="business">Business / Self-Employed</option>
+                <option value="freelance">Freelancer</option>
+              </select>
+            </div>
+          </div>
+          <div v-if="ca.tax.source==='salary'" class="f"><label>HRA Exemption (₹) — Old Regime Only</label><input v-model.number="ca.tax.hra" type="number" placeholder="0"/></div>
+        </div>
+        <div class="card">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Old Regime Deductions</div>
+          <div class="r2">
+            <div class="f"><label>80C — PPF / ELSS / LIC / FD <span style="color:var(--p)">(max ₹1.5L)</span></label><input v-model.number="ca.tax.c80" type="number" placeholder="150000"/></div>
+            <div class="f"><label>80CCD(1B) — NPS <span style="color:var(--p)">(max ₹50K)</span></label><input v-model.number="ca.tax.nps80" type="number" placeholder="50000"/></div>
+          </div>
+          <div class="r2">
+            <div class="f"><label>80D — Self + Family <span style="color:var(--p)">(max ₹25K)</span></label><input v-model.number="ca.tax.med80Self" type="number" placeholder="25000"/></div>
+            <div class="f"><label>80D — Parents <span style="color:var(--p)">(max ₹25K / ₹50K)</span></label><input v-model.number="ca.tax.med80Parent" type="number" placeholder="25000"/></div>
+          </div>
+          <div class="f" style="margin-bottom:10px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="checkbox" v-model="ca.tax.seniorParent" style="width:auto;padding:0;height:auto;accent-color:var(--p)"/>
+              <span>Parents are Senior Citizens (80D limit becomes ₹50K)</span>
+            </label>
+          </div>
+          <div class="r2">
+            <div class="f"><label>24(b) — Home Loan Interest <span style="color:var(--p)">(max ₹2L)</span></label><input v-model.number="ca.tax.hlInt" type="number" placeholder="200000"/></div>
+            <div class="f"><label>80G — Donations <span style="color:var(--muted)">(50% deductible)</span></label><input v-model.number="ca.tax.don80g" type="number" placeholder="0"/></div>
+          </div>
+          <div class="r2">
+            <div class="f"><label>80E — Education Loan Interest <span style="color:var(--muted)">(no limit)</span></label><input v-model.number="ca.tax.edu80e" type="number" placeholder="0"/></div>
+            <div class="f"><label>80TTA — Savings A/C Interest <span style="color:var(--p)">(max ₹10K)</span></label><input v-model.number="ca.tax.tta" type="number" placeholder="0"/></div>
+          </div>
+          <button class="btn" @click="calcCaTax">Compare Both Regimes</button>
+        </div>
+      </div>
+
+      <div>
+        <div v-if="ca.tax.res">
+          <div :style="{background:ca.tax.res.better==='new'?'rgba(5,150,105,.12)':'rgba(124,111,255,.12)',border:'1px solid '+(ca.tax.res.better==='new'?'rgba(5,150,105,.4)':'rgba(124,111,255,.4)'),borderRadius:'12px',padding:'14px 18px',marginBottom:'14px',textAlign:'center'}">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Best Option for You</div>
+            <div style="font-size:20px;font-weight:800">{{ca.tax.res.better==='new'?'✅ New Regime':'✅ Old Regime'}}</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:2px">saves you <span style="font-size:22px;font-weight:800;color:var(--g)">₹{{fmt(ca.tax.res.saving)}}</span> in tax</div>
+          </div>
+
+          <div class="r2">
+            <div class="card" :style="{border:ca.tax.res.better==='new'?'2px solid var(--g)':'1px solid var(--border)'}">
+              <div style="font-size:11px;font-weight:700;color:var(--g);margin-bottom:10px;letter-spacing:.5px">NEW REGIME</div>
+              <div class="sr"><span>Std Deduction</span><span class="gr">−₹{{fmt(ca.tax.res.new.stdDed)}}</span></div>
+              <div class="sr"><span>Taxable Income</span><span class="ac">₹{{fmt(ca.tax.res.new.taxable)}}</span></div>
+              <div class="sr"><span>Income Tax</span><span>₹{{fmt(ca.tax.res.new.rawTax)}}</span></div>
+              <div v-if="ca.tax.res.new.rebate" class="sr"><span>Rebate u/s 87A</span><span class="gr">−₹{{fmt(ca.tax.res.new.rebate)}}</span></div>
+              <div v-if="ca.tax.res.new.sur" class="sr"><span>Surcharge</span><span class="re">+₹{{fmt(ca.tax.res.new.sur)}}</span></div>
+              <div class="sr"><span>H&amp;E Cess (4%)</span><span>₹{{fmt(ca.tax.res.new.cess)}}</span></div>
+              <div style="border-top:2px solid var(--border);margin-top:8px;padding-top:8px">
+                <div class="sr"><span style="font-weight:700">Total Tax</span><span class="re" style="font-weight:800">₹{{fmt(ca.tax.res.new.total)}}</span></div>
+                <div class="sr"><span style="font-weight:600">Monthly In-Hand</span><span class="gr" style="font-weight:700">₹{{fmt(ca.tax.res.new.inHand)}}</span></div>
+              </div>
+            </div>
+            <div class="card" :style="{border:ca.tax.res.better==='old'?'2px solid var(--g)':'1px solid var(--border)'}">
+              <div style="font-size:11px;font-weight:700;color:var(--p);margin-bottom:10px;letter-spacing:.5px">OLD REGIME</div>
+              <div class="sr"><span>Total Deductions</span><span class="gr">−₹{{fmt(ca.tax.res.old.totalDeds)}}</span></div>
+              <div class="sr"><span>Taxable Income</span><span class="ac">₹{{fmt(ca.tax.res.old.taxable)}}</span></div>
+              <div class="sr"><span>Income Tax</span><span>₹{{fmt(ca.tax.res.old.rawTax)}}</span></div>
+              <div v-if="ca.tax.res.old.rebate" class="sr"><span>Rebate u/s 87A</span><span class="gr">−₹{{fmt(ca.tax.res.old.rebate)}}</span></div>
+              <div v-if="ca.tax.res.old.sur" class="sr"><span>Surcharge</span><span class="re">+₹{{fmt(ca.tax.res.old.sur)}}</span></div>
+              <div class="sr"><span>H&amp;E Cess (4%)</span><span>₹{{fmt(ca.tax.res.old.cess)}}</span></div>
+              <div style="border-top:2px solid var(--border);margin-top:8px;padding-top:8px">
+                <div class="sr"><span style="font-weight:700">Total Tax</span><span class="re" style="font-weight:800">₹{{fmt(ca.tax.res.old.total)}}</span></div>
+                <div class="sr"><span style="font-weight:600">Monthly In-Hand</span><span class="gr" style="font-weight:700">₹{{fmt(ca.tax.res.old.inHand)}}</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px" v-if="ca.tax.res.old.deds.length">
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Deductions Claimed (Old Regime)</div>
+            <div v-for="d in ca.tax.res.old.deds" :key="d.l" class="sr"><span>{{d.l}}</span><span class="gr">₹{{fmt(d.v)}}</span></div>
+            <div class="sr" style="border-top:1px solid var(--border);margin-top:4px;padding-top:6px"><span style="font-weight:700">Total Deductions</span><span class="gr" style="font-weight:800">₹{{fmt(ca.tax.res.old.totalDeds)}}</span></div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Slab-wise Breakdown</div>
+            <div style="font-size:11px;font-weight:600;color:var(--g);margin-bottom:6px">New Regime</div>
+            <div v-for="s in ca.tax.res.new.bd" :key="s.l" class="sr"><span>{{s.l}}</span><span>₹{{fmt(s.t)}}</span></div>
+            <div style="font-size:11px;font-weight:600;color:var(--p);margin-top:12px;margin-bottom:6px">Old Regime</div>
+            <div v-for="s in ca.tax.res.old.bd" :key="s.l" class="sr"><span>{{s.l}}</span><span>₹{{fmt(s.t)}}</span></div>
+          </div>
+        </div>
+        <div v-else class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;opacity:.5">
+          <div style="font-size:52px;margin-bottom:12px">💹</div>
+          <div style="font-size:14px;color:var(--muted)">Enter income &amp; deductions, then click Calculate</div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ── TAB 2: INVESTMENT ADVISOR ── -->
+  <template v-if="ca.tab==='invest'">
+    <div class="cl">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Your Finances</div>
+          <div class="f"><label>Monthly Take-Home Salary (₹)</label><input v-model.number="ca.inv.monthly" type="number" placeholder="80000"/></div>
+          <div class="f"><label>Monthly Living Expenses (₹)</label><input v-model.number="ca.inv.expenses" type="number" placeholder="40000"/></div>
+          <div class="f"><label>Risk Appetite</label>
+            <select v-model="ca.inv.risk">
+              <option value="conservative">🛡 Conservative — FD &amp; Debt heavy</option>
+              <option value="moderate">⚖️ Moderate — Balanced growth</option>
+              <option value="aggressive">🚀 Aggressive — Equity heavy</option>
+            </select>
+          </div>
+          <button class="btn" @click="calcCaInvest">Generate Investment Plan</button>
+        </div>
+        <div class="card" style="background:rgba(124,111,255,.06);border-color:rgba(124,111,255,.25)">
+          <div style="font-size:11px;font-weight:700;color:var(--p);margin-bottom:8px">💡 INVESTMENT THUMB RULES</div>
+          <div style="font-size:12px;line-height:1.9;color:var(--muted)">
+            <div>• <strong>Emergency Fund</strong>: Keep 6 months of expenses in liquid assets</div>
+            <div>• <strong>50-30-20 Rule</strong>: 50% needs, 30% wants, 20% savings/investments</div>
+            <div>• <strong>100 − Age</strong>: Equity % you should hold (e.g. 30 yrs → 70% equity)</div>
+            <div>• <strong>Max 80C</strong>: Always exhaust ₹1.5L + extra ₹50K via NPS to save tax</div>
+            <div>• <strong>SIP over lump-sum</strong>: Rupee cost averaging beats market timing</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div v-if="ca.inv.res">
+          <div class="rg">
+            <div class="rb"><div class="rl">Monthly Take-Home</div><div class="rv ac">₹{{fmt(ca.inv.res.monthly)}}</div></div>
+            <div class="rb"><div class="rl">Monthly Expenses</div><div class="rv re">₹{{fmt(ca.inv.res.expenses)}}</div></div>
+            <div class="rb"><div class="rl">Monthly Investable</div><div class="rv gr">₹{{fmt(ca.inv.res.investable)}}</div></div>
+            <div class="rb"><div class="rl">Emergency Fund Target</div><div class="rv am">₹{{fmt(ca.inv.res.emFund)}}</div></div>
+          </div>
+
+          <!-- Year Slider -->
+          <div class="card" style="margin-bottom:12px;background:rgba(124,111,255,.06);border-color:rgba(124,111,255,.3)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div style="font-size:12px;font-weight:700;color:var(--p)">📅 Projection Horizon</div>
+              <div style="font-size:22px;font-weight:800;color:var(--p)">{{ca.inv.projYears}} <span style="font-size:13px;font-weight:600;color:var(--muted)">Years</span></div>
+            </div>
+            <input type="range" min="1" max="40" step="1" v-model.number="ca.inv.projYears"
+              style="width:100%;accent-color:var(--p);height:6px;cursor:pointer"/>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">
+              <span>1 yr</span><span>5 yr</span><span>10 yr</span><span>15 yr</span><span>20 yr</span><span>30 yr</span><span>40 yr</span>
+            </div>
+
+            <!-- Live Portfolio Summary for selected year -->
+            <div style="margin-top:14px;background:var(--card);border-radius:10px;padding:14px;border:1px solid var(--border)">
+              <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Total Portfolio after {{ca.inv.projYears}} Years</div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
+                <div style="background:var(--bg2);border-radius:8px;padding:10px;border:1px solid var(--border)">
+                  <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Total Invested (SIP × months)</div>
+                  <div style="font-size:15px;font-weight:700;color:var(--muted)">₹{{fmt(caPortfolioFV(ca.inv.projYears).invested)}}</div>
+                </div>
+                <div style="background:var(--bg2);border-radius:8px;padding:10px;border:1px solid var(--border)">
+                  <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Estimated Corpus</div>
+                  <div style="font-size:15px;font-weight:800;color:var(--p)">₹{{fmt(caPortfolioFV(ca.inv.projYears).corpus)}}</div>
+                </div>
+                <div style="background:rgba(5,150,105,.1);border-radius:8px;padding:10px;border:1px solid rgba(5,150,105,.3)">
+                  <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Total Profit / Gain</div>
+                  <div style="font-size:15px;font-weight:800;color:var(--g)">+₹{{fmt(caPortfolioFV(ca.inv.projYears).profit)}}</div>
+                </div>
+                <div style="background:rgba(5,150,105,.1);border-radius:8px;padding:10px;border:1px solid rgba(5,150,105,.3)">
+                  <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Return % · Growth</div>
+                  <div style="font-size:15px;font-weight:800;color:var(--g)">+{{caPortfolioFV(ca.inv.projYears).pct}}% · {{caPortfolioFV(ca.inv.projYears).mult}}×</div>
+                </div>
+              </div>
+              <!-- Compound growth bar -->
+              <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:600">COMPOUND GROWTH — Invested vs Profit</div>
+              <div class="bw" style="height:22px;border-radius:6px">
+                <div class="bar gb" :style="{width:(caPortfolioFV(ca.inv.projYears).corpus?Math.round(caPortfolioFV(ca.inv.projYears).invested/caPortfolioFV(ca.inv.projYears).corpus*100):100)+'%'}">Capital</div>
+                <div class="bar" style="background:var(--p)" :style="{width:(caPortfolioFV(ca.inv.projYears).corpus?Math.round(caPortfolioFV(ca.inv.projYears).profit/caPortfolioFV(ca.inv.projYears).corpus*100):0)+'%'}">Returns</div>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:6px">Blended avg return ~{{caPortfolioFV(ca.inv.projYears).blended}}% p.a. · Monthly SIP ₹{{fmt(ca.inv.res.investable)}}</div>
+            </div>
+          </div>
+
+          <!-- Per-Allocation Cards with live projection -->
+          <div class="card" style="margin-bottom:12px">
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">
+              Monthly Allocation — Live Projection for {{ca.inv.projYears}} Yrs
+              <span style="font-size:10px;font-weight:400;margin-left:6px;padding:2px 8px;border-radius:10px;background:rgba(124,111,255,.15);color:var(--p)">
+                {{ca.inv.risk==='conservative'?'Conservative':ca.inv.risk==='moderate'?'Moderate':'Aggressive'}}
+              </span>
+            </div>
+            <div v-for="a in ca.inv.res.alloc" :key="a.name" style="margin-bottom:12px;padding:12px;background:var(--bg2);border-radius:10px;border-left:3px solid" :style="{borderLeftColor:a.type==='equity'?'var(--p)':a.type==='gold'?'var(--a)':a.type==='safe'?'var(--g)':'var(--g)'}">
+              <!-- Header -->
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                <div>
+                  <div style="font-size:13px;font-weight:700">{{a.name}}</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">{{a.desc}}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;margin-left:10px">
+                  <div style="font-size:10px;color:var(--muted)">{{a.pct}}% allocation · {{a.rate}}% p.a.</div>
+                  <div style="font-size:16px;font-weight:800" :class="a.type==='equity'?'ac':a.type==='gold'?'am':'gr'">₹{{fmt(a.amt)}}/mo</div>
+                </div>
+              </div>
+              <!-- Live numbers for selected year -->
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
+                <div style="background:var(--card);border-radius:7px;padding:8px;border:1px solid var(--border);text-align:center">
+                  <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Invested</div>
+                  <div style="font-size:12px;font-weight:700;color:var(--muted)">{{fmtS(a.amt*12*ca.inv.projYears)}}</div>
+                </div>
+                <div style="background:var(--card);border-radius:7px;padding:8px;border:1px solid var(--border);text-align:center">
+                  <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Corpus</div>
+                  <div style="font-size:12px;font-weight:800;color:var(--p)">{{fmtS(sipFV(a.amt,a.rate,ca.inv.projYears))}}</div>
+                </div>
+                <div style="background:rgba(5,150,105,.08);border-radius:7px;padding:8px;border:1px solid rgba(5,150,105,.2);text-align:center">
+                  <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Profit</div>
+                  <div style="font-size:12px;font-weight:800;color:var(--g)">+{{fmtS(sipFV(a.amt,a.rate,ca.inv.projYears)-a.amt*12*ca.inv.projYears)}}</div>
+                </div>
+              </div>
+              <!-- Compound bar for this instrument -->
+              <div class="bw" style="height:16px;border-radius:5px">
+                <div class="bar gb" :style="{width:(sipFV(a.amt,a.rate,ca.inv.projYears)?Math.max(5,Math.round(a.amt*12*ca.inv.projYears/sipFV(a.amt,a.rate,ca.inv.projYears)*100)):100)+'%',fontSize:'10px'}">Capital</div>
+                <div class="bar" style="background:var(--p);font-size:10px" :style="{width:(sipFV(a.amt,a.rate,ca.inv.projYears)?Math.min(95,Math.round((sipFV(a.amt,a.rate,ca.inv.projYears)-a.amt*12*ca.inv.projYears)/sipFV(a.amt,a.rate,ca.inv.projYears)*100)):0)+'%'}">Returns</div>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:5px;text-align:right">
+                +{{a.amt*12*ca.inv.projYears>0?(((sipFV(a.amt,a.rate,ca.inv.projYears)-a.amt*12*ca.inv.projYears)/(a.amt*12*ca.inv.projYears)*100).toFixed(1)):0}}% total gain · {{a.amt*12*ca.inv.projYears>0?(sipFV(a.amt,a.rate,ca.inv.projYears)/(a.amt*12*ca.inv.projYears)).toFixed(2):1}}× growth
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Tax Saving Instruments Guide</div>
+            <div style="overflow-x:auto">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Instrument</th>
+                    <th style="text-align:left">Tax Limit</th>
+                    <th style="text-align:left">Returns</th>
+                    <th style="text-align:left">Lock-in</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="ts in ca.inv.res.taxSaving" :key="ts.name">
+                    <td style="font-weight:600">{{ts.name}}</td>
+                    <td style="text-align:left;color:var(--p)">{{ts.limit}}</td>
+                    <td style="text-align:left;color:var(--g)">{{ts.ret}}</td>
+                    <td style="text-align:left;color:var(--muted)">{{ts.lock}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:10px">* Returns are indicative. Past returns do not guarantee future performance. Consult a SEBI-registered advisor before investing.</div>
+          </div>
+        </div>
+        <div v-else class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;opacity:.5">
+          <div style="font-size:52px;margin-bottom:12px">📊</div>
+          <div style="font-size:14px;color:var(--muted)">Enter your salary &amp; expenses to get a plan</div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ── TAB 3: PROFIT & LOSS ── -->
+  <template v-if="ca.tab==='pl'">
+    <div class="cl">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:600;color:var(--g);text-transform:uppercase;letter-spacing:.5px">Revenue</div>
+            <button class="btn-o" @click="ca.pl.revenues.push({label:'Revenue Item',amt:0})">+ Add Row</button>
+          </div>
+          <div v-for="(r,i) in ca.pl.revenues" :key="i" class="r2" style="margin-bottom:8px;align-items:center">
+            <div class="f" style="margin-bottom:0"><input v-model="r.label" placeholder="Revenue item name"/></div>
+            <div style="display:flex;gap:6px">
+              <div class="f" style="margin-bottom:0;flex:1"><input v-model.number="r.amt" type="number" placeholder="0"/></div>
+              <button class="xb" @click="ca.pl.revenues.splice(i,1)" v-if="ca.pl.revenues.length>1" style="font-size:16px;padding:8px">✕</button>
+            </div>
+          </div>
+          <div class="r2" style="margin-top:10px">
+            <div class="f"><label>Other Income (₹)</label><input v-model.number="ca.pl.otherIncome" type="number" placeholder="0"/></div>
+            <div class="f"><label>Cost of Goods Sold / COGS (₹)</label><input v-model.number="ca.pl.cogs" type="number" placeholder="0"/></div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:600;color:var(--r);text-transform:uppercase;letter-spacing:.5px">Operating Expenses</div>
+            <button class="btn-o" @click="ca.pl.expenses.push({label:'Expense Item',amt:0})">+ Add Row</button>
+          </div>
+          <div v-for="(e,i) in ca.pl.expenses" :key="i" class="r2" style="margin-bottom:8px;align-items:center">
+            <div class="f" style="margin-bottom:0"><input v-model="e.label" placeholder="Expense item name"/></div>
+            <div style="display:flex;gap:6px">
+              <div class="f" style="margin-bottom:0;flex:1"><input v-model.number="e.amt" type="number" placeholder="0"/></div>
+              <button class="xb" @click="ca.pl.expenses.splice(i,1)" v-if="ca.pl.expenses.length>1" style="font-size:16px;padding:8px">✕</button>
+            </div>
+          </div>
+          <div class="f" style="margin-top:10px"><label>Depreciation (₹)</label><input v-model.number="ca.pl.depreciation" type="number" placeholder="0"/></div>
+          <button class="btn" @click="calcCaPL">Generate P&amp;L Statement</button>
+        </div>
+      </div>
+
+      <div>
+        <div v-if="ca.pl.res" class="card">
+          <div style="font-size:15px;font-weight:800;text-align:center;margin-bottom:16px;color:var(--p)">📈 Profit &amp; Loss Statement</div>
+
+          <div class="sr" style="font-size:13px"><span style="font-weight:700">Total Revenue</span><span class="gr" style="font-weight:800">₹{{fmt(ca.pl.res.rev)}}</span></div>
+          <div style="font-size:11px;color:var(--muted);padding-left:8px;margin:2px 0">
+            <div v-for="r in ca.pl.revenues.filter(x=>x.amt)" :key="r.label" class="sr" style="font-size:11px"><span>↳ {{r.label}}</span><span class="gr">₹{{fmt(r.amt)}}</span></div>
+            <div v-if="ca.pl.otherIncome" class="sr" style="font-size:11px"><span>↳ Other Income</span><span class="gr">₹{{fmt(ca.pl.otherIncome)}}</span></div>
+          </div>
+          <div class="sr" style="margin-top:6px"><span>Cost of Goods Sold (COGS)</span><span class="re">−₹{{fmt(ca.pl.res.cogs)}}</span></div>
+
+          <div style="background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.3);border-radius:8px;padding:10px 12px;margin:8px 0">
+            <div class="sr"><span style="font-weight:700">Gross Profit</span><span :class="ca.pl.res.gross>=0?'gr':'re'" style="font-weight:800">₹{{fmt(ca.pl.res.gross)}}<span style="font-size:11px;font-weight:400;margin-left:6px">({{ca.pl.res.gm}}% margin)</span></span></div>
+          </div>
+
+          <div class="sr" style="margin-top:4px"><span>Total Operating Expenses</span><span class="re">−₹{{fmt(ca.pl.res.opex)}}</span></div>
+          <div style="font-size:11px;color:var(--muted);padding-left:8px;margin:2px 0">
+            <div v-for="e in ca.pl.expenses.filter(x=>x.amt)" :key="e.label" class="sr" style="font-size:11px"><span>↳ {{e.label}}</span><span class="re">₹{{fmt(e.amt)}}</span></div>
+          </div>
+
+          <div style="background:rgba(124,111,255,.08);border:1px solid rgba(124,111,255,.25);border-radius:8px;padding:10px 12px;margin:8px 0">
+            <div class="sr"><span style="font-weight:700">EBITDA</span><span :class="ca.pl.res.ebitda>=0?'ac':'re'" style="font-weight:800">₹{{fmt(ca.pl.res.ebitda)}}</span></div>
+          </div>
+
+          <div class="sr"><span>Depreciation</span><span class="re">−₹{{fmt(ca.pl.res.dep)}}</span></div>
+
+          <div style="border-top:2px solid var(--border);margin-top:10px;padding-top:10px">
+            <div class="sr" style="font-size:14px"><span style="font-weight:800">Net Profit (EBIT)</span><span :class="ca.pl.res.ebit>=0?'gr':'re'" style="font-weight:800;font-size:20px">₹{{fmt(ca.pl.res.ebit)}}</span></div>
+            <div class="sr" style="margin-top:6px"><span>Net Profit Margin</span><span :class="ca.pl.res.nm>=0?'gr':'re'" style="font-weight:700">{{ca.pl.res.nm}}%</span></div>
+          </div>
+
+          <div :style="{marginTop:'12px',padding:'12px',borderRadius:'8px',fontSize:'12px',lineHeight:'1.7',background:ca.pl.res.nm>=15?'rgba(5,150,105,.1)':ca.pl.res.nm>=0?'rgba(217,119,6,.1)':'rgba(229,62,62,.1)',border:'1px solid '+(ca.pl.res.nm>=15?'rgba(5,150,105,.3)':ca.pl.res.nm>=0?'rgba(217,119,6,.3)':'rgba(229,62,62,.3)')}">
+            {{ca.pl.res.nm>=15?'✅ Healthy margin! Focus on scaling revenue.':ca.pl.res.nm>=0?'⚠️ Low margin. Review expenses and pricing.':'🔴 Loss-making. Urgent cost-cutting or revenue boost needed.'}}
+          </div>
+        </div>
+        <div v-else class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;opacity:.5">
+          <div style="font-size:52px;margin-bottom:12px">📈</div>
+          <div style="font-size:14px;color:var(--muted)">Enter revenue &amp; expenses to generate P&amp;L</div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ── TAB 4: NET WORTH ── -->
+  <template v-if="ca.tab==='nw'">
+    <div class="cl">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <div style="font-size:11px;font-weight:600;color:var(--g);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Assets</div>
+          <div class="r2">
+            <div class="f"><label>Cash in Hand (₹)</label><input v-model.number="ca.nw.cash" type="number" placeholder="0"/></div>
+            <div class="f"><label>Bank Balance / Savings (₹)</label><input v-model.number="ca.nw.bank" type="number" placeholder="0"/></div>
+          </div>
+          <div class="r2">
+            <div class="f"><label>Stocks / Direct Equity (₹)</label><input v-model.number="ca.nw.stocks" type="number" placeholder="0"/></div>
+            <div class="f"><label>Mutual Funds (current value, ₹)</label><input v-model.number="ca.nw.mf" type="number" placeholder="0"/></div>
+          </div>
+          <div class="r2">
+            <div class="f"><label>Fixed Deposits (₹)</label><input v-model.number="ca.nw.fd" type="number" placeholder="0"/></div>
+            <div class="f"><label>PPF / EPF / NPS (₹)</label><input v-model.number="ca.nw.ppf" type="number" placeholder="0"/></div>
+          </div>
+          <div class="r2">
+            <div class="f"><label>Property / Real Estate (₹)</label><input v-model.number="ca.nw.property" type="number" placeholder="0"/></div>
+            <div class="f"><label>Gold / Jewellery (₹)</label><input v-model.number="ca.nw.gold" type="number" placeholder="0"/></div>
+          </div>
+          <div class="f"><label>Other Assets — Vehicle, Business, etc. (₹)</label><input v-model.number="ca.nw.otherAsset" type="number" placeholder="0"/></div>
+        </div>
+        <div class="card">
+          <div style="font-size:11px;font-weight:600;color:var(--r);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Liabilities</div>
+          <div class="r2">
+            <div class="f"><label>Home Loan Outstanding (₹)</label><input v-model.number="ca.nw.homeloan" type="number" placeholder="0"/></div>
+            <div class="f"><label>Car Loan Outstanding (₹)</label><input v-model.number="ca.nw.carloan" type="number" placeholder="0"/></div>
+          </div>
+          <div class="r2">
+            <div class="f"><label>Personal Loan (₹)</label><input v-model.number="ca.nw.personal" type="number" placeholder="0"/></div>
+            <div class="f"><label>Credit Card Dues (₹)</label><input v-model.number="ca.nw.creditcard" type="number" placeholder="0"/></div>
+          </div>
+          <div class="f"><label>Other Liabilities (₹)</label><input v-model.number="ca.nw.otherLiab" type="number" placeholder="0"/></div>
+          <button class="btn" @click="calcCaNW">Calculate Net Worth</button>
+        </div>
+      </div>
+
+      <div>
+        <div v-if="ca.nw.res">
+          <div class="rg">
+            <div class="rb"><div class="rl">Total Assets</div><div class="rv gr">₹{{fmt(ca.nw.res.aTotal)}}</div></div>
+            <div class="rb"><div class="rl">Total Liabilities</div><div class="rv re">₹{{fmt(ca.nw.res.lTotal)}}</div></div>
+            <div class="rb"><div class="rl">Debt-to-Asset Ratio</div><div class="rv am">{{ca.nw.res.dtr}}%</div></div>
+            <div class="rb" style="grid-column:1/-1"><div class="rl">Net Worth</div><div class="rv" :class="ca.nw.res.netWorth>=0?'gr':'re'" style="font-size:26px">₹{{fmt(ca.nw.res.netWorth)}}</div></div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <div style="font-size:11px;font-weight:600;color:var(--g);margin-bottom:10px">ASSETS BREAKDOWN</div>
+            <div v-if="ca.nw.cash" class="sr"><span>Cash in Hand</span><span class="gr">₹{{fmt(ca.nw.cash)}}</span></div>
+            <div v-if="ca.nw.bank" class="sr"><span>Bank Balance / Savings</span><span class="gr">₹{{fmt(ca.nw.bank)}}</span></div>
+            <div v-if="ca.nw.stocks" class="sr"><span>Stocks / Direct Equity</span><span class="gr">₹{{fmt(ca.nw.stocks)}}</span></div>
+            <div v-if="ca.nw.mf" class="sr"><span>Mutual Funds</span><span class="gr">₹{{fmt(ca.nw.mf)}}</span></div>
+            <div v-if="ca.nw.fd" class="sr"><span>Fixed Deposits</span><span class="gr">₹{{fmt(ca.nw.fd)}}</span></div>
+            <div v-if="ca.nw.ppf" class="sr"><span>PPF / EPF / NPS</span><span class="gr">₹{{fmt(ca.nw.ppf)}}</span></div>
+            <div v-if="ca.nw.property" class="sr"><span>Property / Real Estate</span><span class="gr">₹{{fmt(ca.nw.property)}}</span></div>
+            <div v-if="ca.nw.gold" class="sr"><span>Gold / Jewellery</span><span class="gr">₹{{fmt(ca.nw.gold)}}</span></div>
+            <div v-if="ca.nw.otherAsset" class="sr"><span>Other Assets</span><span class="gr">₹{{fmt(ca.nw.otherAsset)}}</span></div>
+
+            <div style="font-size:11px;font-weight:600;color:var(--r);margin-top:14px;margin-bottom:10px">LIABILITIES BREAKDOWN</div>
+            <div v-if="ca.nw.homeloan" class="sr"><span>Home Loan</span><span class="re">₹{{fmt(ca.nw.homeloan)}}</span></div>
+            <div v-if="ca.nw.carloan" class="sr"><span>Car Loan</span><span class="re">₹{{fmt(ca.nw.carloan)}}</span></div>
+            <div v-if="ca.nw.personal" class="sr"><span>Personal Loan</span><span class="re">₹{{fmt(ca.nw.personal)}}</span></div>
+            <div v-if="ca.nw.creditcard" class="sr"><span>Credit Card Dues</span><span class="re">₹{{fmt(ca.nw.creditcard)}}</span></div>
+            <div v-if="ca.nw.otherLiab" class="sr"><span>Other Liabilities</span><span class="re">₹{{fmt(ca.nw.otherLiab)}}</span></div>
+          </div>
+
+          <div :style="{marginTop:'12px',padding:'14px',borderRadius:'10px',fontSize:'12px',lineHeight:'1.8',background:ca.nw.res.dtr<30?'rgba(5,150,105,.1)':ca.nw.res.dtr<60?'rgba(217,119,6,.1)':'rgba(229,62,62,.1)',border:'1px solid '+(ca.nw.res.dtr<30?'rgba(5,150,105,.3)':ca.nw.res.dtr<60?'rgba(217,119,6,.3)':'rgba(229,62,62,.3)')}">
+            <div style="font-weight:700;font-size:13px;margin-bottom:6px">
+              {{ca.nw.res.dtr<30?'✅ Excellent Financial Health':ca.nw.res.dtr<60?'⚠️ Moderate Debt — Watch Carefully':'🔴 High Debt Load — Action Needed'}}
+            </div>
+            <div>{{ca.nw.res.dtr<30?'Your debt-to-asset ratio is healthy. Focus on wealth creation through SIP & equity.':ca.nw.res.dtr<60?'Pay down high-interest debt (credit cards, personal loans) before investing further.':'Prioritise debt repayment aggressively. Avoid new loans. Build a 3-month emergency fund first.'}}</div>
+          </div>
+        </div>
+        <div v-else class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;opacity:.5">
+          <div style="font-size:52px;margin-bottom:12px">🏦</div>
+          <div style="font-size:14px;color:var(--muted)">Enter assets &amp; liabilities to calculate net worth</div>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const ca=ref({
+    tab:'tax',
+    tax:{income:null,source:'salary',hra:0,c80:0,nps80:0,med80Self:0,med80Parent:0,seniorParent:false,don80g:0,hlInt:0,edu80e:0,tta:0,res:null},
+    inv:{monthly:null,expenses:null,risk:'moderate',projYears:10,res:null},
+    pl:{revenues:[{label:'Product Sales',amt:0},{label:'Service Income',amt:0}],cogs:0,expenses:[{label:'Rent',amt:0},{label:'Salaries',amt:0},{label:'Marketing',amt:0}],otherIncome:0,depreciation:0,res:null},
+    nw:{cash:0,bank:0,stocks:0,mf:0,fd:0,ppf:0,property:0,gold:0,otherAsset:0,homeloan:0,carloan:0,personal:0,creditcard:0,otherLiab:0,res:null}
+  });
+
+  const calcCaTax=()=>{
+    const t=ca.value.tax;
+    const inc=t.income||0;
+    const newStd=t.source==='salary'?75000:0;
+    const newTI=Math.max(0,inc-newStd);
+    const newSlabs=[[0,300000,0,'₹0–₹3L'],[300000,700000,5,'₹3L–₹7L'],[700000,1000000,10,'₹7L–₹10L'],[1000000,1200000,15,'₹10L–₹12L'],[1200000,1500000,20,'₹12L–₹15L'],[1500000,Infinity,30,'Above ₹15L']];
+    const oldSlabs=[[0,250000,0,'₹0–₹2.5L'],[250000,500000,5,'₹2.5L–₹5L'],[500000,1000000,20,'₹5L–₹10L'],[1000000,Infinity,30,'Above ₹10L']];
+    const calcSlabs=(ti,slabs)=>{let tax=0;const bd=[];for(const[from,to,rate,lbl]of slabs){if(ti<=from)break;const taxable=Math.min(ti,to===Infinity?ti:to)-from;const t2=Math.round(taxable*rate/100);bd.push({l:lbl+` (${rate}%)`,t:t2});tax+=t2;}return{tax,bd};};
+    const applyRebateCess=(tax,ti,isNew)=>{const rebate=isNew?(ti<=700000?tax:0):Math.min(tax,ti<=500000?12500:0);const taxAfter=Math.max(0,tax-rebate);const sur=ti>5e7?Math.round(taxAfter*.37):ti>2e7?Math.round(taxAfter*.25):ti>1e7?Math.round(taxAfter*.15):ti>5e6?Math.round(taxAfter*.1):0;const cess=Math.round((taxAfter+sur)*.04);return{taxAfter,rebate,sur,cess,total:taxAfter+sur+cess};};
+    const{tax:nRaw,bd:nBD}=calcSlabs(newTI,newSlabs);
+    const{taxAfter:nTA,rebate:nReb,sur:nSur,cess:nCess,total:newTotal}=applyRebateCess(nRaw,newTI,true);
+    const stdDed=t.source==='salary'?50000:0;
+    const c80=Math.min(150000,t.c80||0);const nps80=Math.min(50000,t.nps80||0);
+    const med80S=Math.min(25000,t.med80Self||0);const med80P=Math.min(t.seniorParent?50000:25000,t.med80Parent||0);
+    const don=Math.round((t.don80g||0)*.5);const hl=Math.min(200000,t.hlInt||0);
+    const edu=t.edu80e||0;const tta=Math.min(10000,t.tta||0);const hra=t.hra||0;
+    const totalDeds=stdDed+hra+c80+nps80+med80S+med80P+don+hl+edu+tta;
+    const oldTI=Math.max(0,inc-totalDeds);
+    const{tax:oRaw,bd:oBD}=calcSlabs(oldTI,oldSlabs);
+    const{taxAfter:oTA,rebate:oReb,sur:oSur,cess:oCess,total:oldTotal}=applyRebateCess(oRaw,oldTI,false);
+    const better=newTotal<=oldTotal?'new':'old';
+    const saving=Math.abs(oldTotal-newTotal);
+    const deds=[{l:'Standard Deduction',v:stdDed},{l:'HRA Exemption',v:hra},{l:'80C – PPF/ELSS/LIC/FD',v:c80},{l:'80CCD(1B) – NPS',v:nps80},{l:'80D – Self + Family',v:med80S},{l:'80D – Parents',v:med80P},{l:'80G – Donations (50%)',v:don},{l:'24(b) – Home Loan Interest',v:hl},{l:'80E – Education Loan',v:edu},{l:'80TTA – Savings Interest',v:tta}].filter(d=>d.v>0);
+    ca.value.tax.res={inc,new:{taxable:newTI,stdDed:newStd,rawTax:nRaw,rebate:nReb,sur:nSur,cess:nCess,total:newTotal,bd:nBD,inHand:Math.round((inc-newTotal)/12)},old:{taxable:oldTI,totalDeds,rawTax:oRaw,rebate:oReb,sur:oSur,cess:oCess,total:oldTotal,bd:oBD,deds,inHand:Math.round((inc-oldTotal)/12)},better,saving};
+  };
+
+  const sipFV=(p,rateAnnual,years)=>{if(!p||!rateAnnual||!years)return 0;const r=rateAnnual/100/12;const n=years*12;return Math.round(p*((Math.pow(1+r,n)-1)/r)*(1+r));};
+  const caPortfolioFV=(years)=>{if(!ca.value.inv.res)return{corpus:0,invested:0,profit:0,pct:0,mult:0,blended:0};const alloc=ca.value.inv.res.alloc;const corpus=alloc.reduce((s,a)=>s+sipFV(a.amt,a.rate,years),0);const invested=(ca.value.inv.res.investable||0)*12*years;const profit=corpus-invested;const pct=invested?+((profit/invested)*100).toFixed(1):0;const mult=invested?+((corpus/invested).toFixed(2)):0;const blended=+(alloc.reduce((s,a)=>s+a.rate*a.pct,0)/100).toFixed(1);return{corpus,invested,profit,pct,mult,blended};};
+
+  const calcCaInvest=()=>{
+    const inv=ca.value.inv;
+    const monthly=inv.monthly||0;const expenses=inv.expenses||0;
+    const investable=Math.max(0,monthly-expenses);
+    const emFund=expenses*6;
+    const risk=inv.risk;
+    const alloc=risk==='conservative'?[
+      {name:'Liquid Fund / FD',pct:20,type:'safe',rate:5.5,desc:'Emergency corpus — Parag Parikh Liquid, HDFC Liquid Fund'},
+      {name:'Debt Mutual Fund',pct:30,type:'debt',rate:7.5,desc:'ICICI Pru Short Term, Kotak Corporate Bond MF'},
+      {name:'PPF',pct:20,type:'debt',rate:7.1,desc:'Guaranteed 7.1% p.a. tax-free — 80C benefit'},
+      {name:'Large Cap Equity MF',pct:20,type:'equity',rate:12,desc:'Mirae Asset Large Cap, Axis Bluechip Fund'},
+      {name:'Gold ETF / SGB',pct:10,type:'gold',rate:9,desc:'Nippon India Gold ETF, Sovereign Gold Bond'},
+    ]:risk==='moderate'?[
+      {name:'Liquid Fund (Emergency)',pct:10,type:'safe',rate:5.5,desc:'HDFC Liquid, Axis Liquid Fund'},
+      {name:'PPF + NPS Tier-1',pct:20,type:'debt',rate:7.5,desc:'PPF 7.1% tax-free + NPS extra ₹50K deduction (80CCD 1B)'},
+      {name:'Large Cap Equity MF',pct:20,type:'equity',rate:12,desc:'Mirae Asset Large Cap, Canara Robeco Bluechip'},
+      {name:'Flexi / Multi Cap MF',pct:25,type:'equity',rate:13,desc:'Parag Parikh Flexi Cap, HDFC Flexi Cap Fund'},
+      {name:'Mid Cap MF',pct:15,type:'equity',rate:15,desc:'Nippon India Mid Cap, Kotak Mid Cap Fund'},
+      {name:'Gold ETF / SGB',pct:10,type:'gold',rate:9,desc:'SBI Gold ETF, Sovereign Gold Bond (2.5% p.a. + price gain)'},
+    ]:[
+      {name:'PPF + NPS Tier-1',pct:15,type:'debt',rate:7.5,desc:'NPS Tier-1 tax benefit u/s 80CCD(1B) + PPF 7.1%'},
+      {name:'Large Cap / Index MF',pct:20,type:'equity',rate:12,desc:'UTI Nifty 50 Index, HDFC Nifty 50 Index Fund'},
+      {name:'Flexi / Multi Cap MF',pct:20,type:'equity',rate:13,desc:'Parag Parikh Flexi Cap, Quant Flexi Cap Fund'},
+      {name:'Mid Cap MF',pct:20,type:'equity',rate:15,desc:'Nippon India Mid Cap, SBI Mid Cap Fund'},
+      {name:'Small Cap MF',pct:15,type:'equity',rate:17,desc:'Nippon India Small Cap, Quant Small Cap Fund'},
+      {name:'Direct Equity',pct:5,type:'equity',rate:14,desc:'Quality bluechip stocks for long-term wealth creation'},
+      {name:'Gold ETF / SGB',pct:5,type:'gold',rate:9,desc:'Hedge against inflation & currency risk'},
+    ];
+    const allocWithAmt=alloc.map(a=>({...a,amt:Math.round(investable*a.pct/100)}));
+    const taxSaving=[
+      {name:'PPF',limit:'₹1.5L (80C)',ret:'7.1% tax-free',lock:'15 yrs',note:'Best for conservative investors'},
+      {name:'ELSS MF',limit:'₹1.5L (80C)',ret:'12–15% (market)',lock:'3 yrs',note:'Shortest lock-in under 80C'},
+      {name:'NPS Tier-1',limit:'₹50K (80CCD 1B)',ret:'9–12%',lock:'Till 60',note:'Extra ₹50K beyond 80C limit'},
+      {name:'Health Insurance',limit:'₹25K–50K (80D)',ret:'Protection',lock:'Annual',note:'₹50K if parents are senior citizens'},
+      {name:'5yr Tax Saver FD',limit:'₹1.5L (80C)',ret:'6.5–7%',lock:'5 yrs',note:'Guaranteed returns, low risk'},
+      {name:'Sukanya Samriddhi',limit:'₹1.5L (80C)',ret:'8.2% tax-free',lock:'21 yrs',note:'Only for girl child'},
+      {name:'Home Loan Principal',limit:'₹1.5L (80C)',ret:'Asset creation',lock:'—',note:'Interest also u/s 24(b) max ₹2L'},
+      {name:'SGB (Sovereign Gold Bond)',limit:'No cap',ret:'2.5% + gold gain',lock:'8 yrs',note:'Capital gains tax-free at maturity'},
+    ];
+    ca.value.inv.res={monthly,expenses,investable,emFund,alloc:allocWithAmt,taxSaving};
+  };
+
+  const calcCaPL=()=>{
+    const pl=ca.value.pl;
+    const rev=pl.revenues.reduce((s,r)=>s+(r.amt||0),0)+(pl.otherIncome||0);
+    const cogs=pl.cogs||0;const gross=rev-cogs;
+    const gm=rev?+((gross/rev)*100).toFixed(1):0;
+    const opex=pl.expenses.reduce((s,e)=>s+(e.amt||0),0);
+    const ebitda=gross-opex;const dep=pl.depreciation||0;const ebit=ebitda-dep;
+    const nm=rev?+((ebit/rev)*100).toFixed(1):0;
+    ca.value.pl.res={rev,cogs,gross,gm,opex,ebitda,dep,ebit,nm};
+  };
+
+  const calcCaNW=()=>{
+    const nw=ca.value.nw;
+    const aTotal=(nw.cash||0)+(nw.bank||0)+(nw.stocks||0)+(nw.mf||0)+(nw.fd||0)+(nw.ppf||0)+(nw.property||0)+(nw.gold||0)+(nw.otherAsset||0);
+    const lTotal=(nw.homeloan||0)+(nw.carloan||0)+(nw.personal||0)+(nw.creditcard||0)+(nw.otherLiab||0);
+    const netWorth=aTotal-lTotal;const dtr=aTotal?+((lTotal/aTotal)*100).toFixed(1):0;
+    ca.value.nw.res={aTotal,lTotal,netWorth,dtr};
+  };
+
+  return {dark,toggleTheme,fmt,fmtS,ca,calcCaTax,sipFV,caPortfolioFV,calcCaInvest,calcCaPL,calcCaNW};
+}}).mount('#app');
+</script>
+</body>
+</html>

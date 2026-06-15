@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Word to PDF — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">📄 Word to PDF</div>
+  <div class="tsub">Runs entirely in your browser — nothing uploaded</div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" :class="w2p.over&&'over'" @dragover.prevent="w2p.over=true" @dragleave="w2p.over=false" @drop.prevent="e=>{w2p.over=false;loadDocx(e.dataTransfer.files[0])}" @click="$refs.w2pInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">📄</div>
+      <div v-if="!w2p.file" style="font-size:14px">Drop .docx or <span style="color:var(--p)">browse</span></div>
+      <div v-else style="font-size:13px;color:var(--g)">✓ {{w2p.file.name}}</div>
+      <input ref="w2pInp" type="file" accept=".docx" hidden @change="e=>loadDocx(e.target.files[0])"/>
+    </div>
+    <div v-if="w2p.preview" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;line-height:1.7;max-height:120px;overflow-y:auto;white-space:pre-wrap;margin-top:12px">{{w2p.preview}}</div>
+    <button v-if="w2p.file" class="btn" :disabled="w2p.loading" @click="convertW2P" style="margin-top:12px">{{w2p.loading?'Converting...':'Convert to PDF →'}}</button>
+    <div v-if="w2p.err" class="err">{{w2p.err}}</div>
+    <div v-if="w2p.done" class="ok">✓ PDF downloaded!</div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const dlPdf=_dlPdf, fmtB=_fmtB;
+
+  const w2p=ref({file:null,over:false,loading:false,err:'',done:false,preview:''});
+  const extractDocxText=async buf=>{const str=Array.from(new Uint8Array(buf),b=>String.fromCharCode(b)).join('');const paras=[...str.matchAll(/<w:p[ >][\s\S]*?<\/w:p>/g)];if(paras.length)return paras.map(m=>[...m[0].matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map(r=>r[1]).join('')).filter(l=>l.trim()).join('\n');const runs=[...str.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)];return runs.length?runs.map(m=>m[1]).join(' '):str.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim()||'[No text]';};
+  const loadDocx=async file=>{if(!file)return;w2p.value.file=file;w2p.value.done=false;w2p.value.err='';w2p.value.preview='';try{const text=await extractDocxText(await file.arrayBuffer());w2p.value.preview=text.slice(0,400)+(text.length>400?'..':'');}catch(e){w2p.value.err='Error: '+e.message;}};
+  const convertW2P=async()=>{w2p.value.loading=true;w2p.value.err='';w2p.value.done=false;try{const text=await extractDocxText(await w2p.value.file.arrayBuffer());const{PDFDocument,StandardFonts,rgb}=PDFLib;const doc=await PDFDocument.create();const font=await doc.embedFont(StandardFonts.Helvetica);const bold2=await doc.embedFont(StandardFonts.HelveticaBold);const pw2=595,ph=842,mg=50,lh=16,fs=11,maxW=pw2-mg*2;const wrap=txt=>{const ws=txt.split(' ');const ls=[];let cur='';for(const w of ws){const test=cur?cur+' '+w:w;if(font.widthOfTextAtSize(test,fs)<=maxW){cur=test;}else{if(cur)ls.push(cur);cur=w;}}if(cur)ls.push(cur);return ls.length?ls:[''];};const allLines=[];text.split('\n').forEach(l=>{if(!l.trim()){allLines.push({t:'',blank:true});return;}wrap(l).forEach(wl=>allLines.push({t:wl,blank:false}));});let pg=doc.addPage([pw2,ph]);pg.drawRectangle({x:0,y:ph-50,width:pw2,height:50,color:rgb(0.48,0.44,1)});pg.drawText(w2p.value.file.name.replace('.docx','').slice(0,50),{x:mg,y:ph-32,size:14,font:bold2,color:rgb(1,1,1)});let y=ph-70;for(const line of allLines){if(y<mg+lh){pg=doc.addPage([pw2,ph]);y=ph-mg;}if(!line.blank)pg.drawText(line.t,{x:mg,y,size:fs,font,color:rgb(0.1,0.1,0.1)});y-=line.blank?8:lh;}const bytes=await doc.save();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));a.download=w2p.value.file.name.replace(/\.docx$/i,'')+'.pdf';a.click();w2p.value.done=true;}catch(e){w2p.value.err='Error: '+e.message;}w2p.value.loading=false;};
+
+  return {dark,toggleTheme,w2p,loadDocx,convertW2P};
+}}).mount('#app');
+</script>
+</body>
+</html>

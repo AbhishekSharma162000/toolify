@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Base64 Encoder/Decoder — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔒 Base64 Encoder / Decoder</div><div class="tsub">Encode or decode Base64 strings</div>
+  <div class="card">
+    <div class="tabs"><button :class="['tab',b64.mode==='encode'&&'active']" @click="b64.mode='encode'">Encode</button><button :class="['tab',b64.mode==='decode'&&'active']" @click="b64.mode='decode'">Decode</button></div>
+    <div class="f"><label>{{b64.mode==='encode'?'Text to Encode':'Base64 to Decode'}}</label><textarea v-model="b64.input" :placeholder="b64.mode==='encode'?'Hello World':'SGVsbG8gV29ybGQ='"></textarea></div>
+    <button class="btn" @click="processB64">{{b64.mode==='encode'?'Encode':'Decode'}}</button>
+    <div v-if="b64.out"><div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;margin-bottom:5px"><span style="font-size:11px;color:var(--muted)">Result</span><button class="btn-sm" @click="cp(b64.out)">Copy</button></div><div class="code-out">{{b64.out}}</div></div>
+    <div v-if="b64.err" class="err">{{b64.err}}</div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const cp=_cp;
+  const b64=ref({input:'',mode:'encode',out:'',err:''});
+  const processB64=()=>{b64.value.err='';b64.value.out='';try{if(b64.value.mode==='encode')b64.value.out=btoa(unescape(encodeURIComponent(b64.value.input)));else b64.value.out=decodeURIComponent(escape(atob(b64.value.input)));}catch(e){b64.value.err='Error: '+e.message;}};
+  return {dark,toggleTheme,cp,b64,processB64};
+}}).mount('#app');
+</script>
+</body>
+</html>

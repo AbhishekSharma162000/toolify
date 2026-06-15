@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF Page Numbers — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔢 PDF Page Numbers</div><div class="tsub">Add page numbers to every page — runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>pnLoad(e.dataTransfer.files[0])" @click="$refs.pnInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🔢</div>
+      <div v-if="!pn.file" style="font-size:14px">Drop PDF or <span style="color:var(--p)">browse</span></div>
+      <div v-else style="font-size:13px;color:var(--g)">✓ {{pn.file.name}}</div>
+      <input ref="pnInp" type="file" accept=".pdf" hidden @change="e=>pnLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="pn.file" style="margin-top:14px">
+      <div class="r2">
+        <div class="f"><label>Position</label>
+          <select v-model="pn.position">
+            <option value="bottom-center">Bottom Center</option>
+            <option value="bottom-right">Bottom Right</option>
+            <option value="bottom-left">Bottom Left</option>
+            <option value="top-center">Top Center</option>
+          </select>
+        </div>
+        <div class="f"><label>Start Number</label><input v-model.number="pn.startNum" type="number" min="1"/></div>
+      </div>
+      <button class="btn" :disabled="pn.loading" @click="addPageNums">{{pn.loading?'Processing...':'🔢 Add Page Numbers →'}}</button>
+    </div>
+    <div v-if="pn.err" class="err">{{pn.err}}</div>
+    <div v-if="pn.done" class="ok">✓ PDF with page numbers downloaded!</div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const dlPdf=_dlPdf, hexToRgb=_hexToRgb;
+
+  // PDF Page Numbers
+  const pn=ref({file:null,position:'bottom-center',startNum:1,loading:false,err:'',done:false});
+  const pnLoad=file=>{if(!file||file.type!=='application/pdf')return;pn.value.file=file;pn.value.done=false;pn.value.err='';};
+  const addPageNums=async()=>{pn.value.loading=true;pn.value.err='';pn.value.done=false;try{const{PDFDocument,StandardFonts,rgb}=PDFLib;const doc=await PDFDocument.load(await pn.value.file.arrayBuffer());const font=await doc.embedFont(StandardFonts.Helvetica);const pages=doc.getPages(),total=pages.length,fs=10;pages.forEach((page,i)=>{const{width,height}=page.getSize();const num=pn.value.startNum+i;const text=num+' / '+(total+pn.value.startNum-1);const tw=font.widthOfTextAtSize(text,fs);let x,y;if(pn.value.position==='bottom-center'){x=(width-tw)/2;y=18;}else if(pn.value.position==='bottom-right'){x=width-tw-30;y=18;}else if(pn.value.position==='bottom-left'){x=30;y=18;}else{x=(width-tw)/2;y=height-28;}page.drawText(text,{x,y,size:fs,font,color:rgb(0.4,0.4,0.4)});});dlPdf(await doc.save(),'numbered.pdf');pn.value.done=true;}catch(e){pn.value.err='Error: '+e.message;}pn.value.loading=false;};
+
+  return {dark,toggleTheme, pn,pnLoad,addPageNums};
+}}).mount('#app');
+</script>
+</body>
+</html>

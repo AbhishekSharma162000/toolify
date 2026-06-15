@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monthly Budget Planner — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">💰 Monthly Budget Planner</div>
+  <div class="tsub">Fill income &amp; expenses — download a PDF budget report</div>
+  <div class="cl">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="r2">
+          <div class="f"><label>Your Name</label><input v-model="bgt.name" placeholder="John Doe"/></div>
+          <div class="f"><label>Month &amp; Year</label><input v-model="bgt.month" placeholder="January 2025"/></div>
+        </div>
+        <div class="f"><label>Savings Goal (₹)</label><input v-model.number="bgt.goal" type="number" placeholder="10000"/></div>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--g);margin-bottom:10px">💵 INCOME</div>
+        <div v-for="(item,i) in bgt.income" :key="'inc'+i" style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end">
+          <div class="f" style="margin-bottom:0;flex:2"><label>Source</label><input v-model="item.label" placeholder="Salary"/></div>
+          <div class="f" style="margin-bottom:0;flex:1"><label>Amount (₹)</label><input v-model.number="item.amount" type="number" placeholder="50000"/></div>
+          <button class="xb" @click="bgt.income.splice(i,1)" style="margin-bottom:2px">✕</button>
+        </div>
+        <button class="btn-o" @click="bgt.income.push({label:'',amount:0})">+ Add Income</button>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--r);margin-bottom:10px">💸 EXPENSES</div>
+        <div v-for="(item,i) in bgt.expenses" :key="'exp'+i" style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end">
+          <div class="f" style="margin-bottom:0;flex:2"><label>Category</label><input v-model="item.label" placeholder="Rent"/></div>
+          <div class="f" style="margin-bottom:0;flex:1"><label>Amount (₹)</label><input v-model.number="item.amount" type="number" placeholder="15000"/></div>
+          <button class="xb" @click="bgt.expenses.splice(i,1)" style="margin-bottom:2px">✕</button>
+        </div>
+        <button class="btn-o" @click="bgt.expenses.push({label:'',amount:0})">+ Add Expense</button>
+      </div>
+      <button class="btn" @click="downloadBudget">⬇ Download Budget PDF</button>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">LIVE SUMMARY</div>
+      <div class="card">
+        <div class="rg">
+          <div class="rb"><div class="rl">Total Income</div><div class="rv gr">₹{{fmt(bgtTotalIncome)}}</div></div>
+          <div class="rb"><div class="rl">Total Expenses</div><div class="rv re">₹{{fmt(bgtTotalExpense)}}</div></div>
+          <div class="rb"><div class="rl">Net Savings</div><div class="rv" :class="bgtSavings>=0?'ac':'re'">₹{{fmt(bgtSavings)}}</div></div>
+          <div class="rb"><div class="rl">Savings Rate</div><div class="rv am">{{bgtTotalIncome?((bgtSavings/bgtTotalIncome)*100).toFixed(1):0}}%</div></div>
+        </div>
+        <div v-if="bgt.expenses.some(e=>e.amount>0)" style="margin-top:10px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Expense Breakdown</div>
+          <div v-for="exp in bgt.expenses.filter(e=>e.amount>0)" :key="exp.label" style="margin-bottom:7px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+              <span>{{exp.label||'Unnamed'}}</span>
+              <span style="color:var(--muted)">₹{{fmt(exp.amount)}} ({{bgtTotalExpense?(exp.amount/bgtTotalExpense*100).toFixed(0):0}}%)</span>
+            </div>
+            <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+              <div :style="{width:bgtTotalExpense?(exp.amount/bgtTotalExpense*100)+'%':'0%',background:'var(--r)',height:'100%',borderRadius:'4px',transition:'width .4s'}"></div>
+            </div>
+          </div>
+        </div>
+        <div v-if="bgt.goal" style="margin-top:14px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--muted)">Savings Goal ₹{{fmt(bgt.goal)}}</span>
+            <span :class="bgtSavings>=bgt.goal?'gr':'re'">{{bgtSavings>=bgt.goal?'✓ Achieved!':fmt(Math.max(0,bgt.goal-bgtSavings))+' to go'}}</span>
+          </div>
+          <div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden">
+            <div :style="{width:Math.min(100,bgt.goal?(Math.max(0,bgtSavings)/bgt.goal*100):0)+'%',background:'var(--g)',height:'100%',borderRadius:'4px',transition:'width .4s'}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS, dlPdf=_dlPdf;
+
+  const bgt=ref({name:'',month:'',goal:10000,income:[{label:'Salary',amount:50000},{label:'Freelance',amount:10000}],expenses:[{label:'Rent',amount:15000},{label:'Food',amount:6000},{label:'Transport',amount:3000},{label:'Utilities',amount:2000},{label:'Entertainment',amount:2000}]});
+  const bgtTotalIncome=computed(()=>bgt.value.income.reduce((s,i)=>s+(i.amount||0),0));
+  const bgtTotalExpense=computed(()=>bgt.value.expenses.reduce((s,i)=>s+(i.amount||0),0));
+  const bgtSavings=computed(()=>bgtTotalIncome.value-bgtTotalExpense.value);
+  const downloadBudget=async()=>{
+    const{PDFDocument,StandardFonts,rgb}=PDFLib;
+    const doc=await PDFDocument.create();
+    const pg=doc.addPage([595,842]);
+    const font=await doc.embedFont(StandardFonts.Helvetica);
+    const bold=await doc.embedFont(StandardFonts.HelveticaBold);
+    const{width:w,height:h}=pg.getSize();
+    const lm=48,rm=w-48;let y=h-48;
+    pg.drawRectangle({x:0,y:h-80,width:w,height:80,color:rgb(0.48,0.44,1)});
+    pg.drawText('MONTHLY BUDGET PLANNER',{x:lm,y:h-42,size:18,font:bold,color:rgb(1,1,1)});
+    pg.drawText((bgt.value.name||'')+(bgt.value.month?' · '+bgt.value.month:''),{x:lm,y:h-62,size:11,font,color:rgb(0.9,0.9,0.9)});
+    y=h-100;
+    const boxes=[['Total Income','₹'+fmt(bgtTotalIncome.value),rgb(0.05,0.59,0.41)],['Total Expenses','₹'+fmt(bgtTotalExpense.value),rgb(0.9,0.2,0.2)],['Net Savings','₹'+fmt(bgtSavings.value),bgtSavings.value>=0?rgb(0.3,0.6,1):rgb(0.9,0.2,0.2)]];
+    const bw=(rm-lm)/3-8;
+    boxes.forEach(([label,val,col],i)=>{const x=lm+i*(rm-lm)/3+4;pg.drawRectangle({x,y:y-44,width:bw,height:44,color:col,borderRadius:6});pg.drawText(label,{x:x+8,y:y-16,size:9,font,color:rgb(1,1,1)});pg.drawText(val,{x:x+8,y:y-34,size:14,font:bold,color:rgb(1,1,1)});});
+    y-=60;
+    pg.drawText('INCOME',{x:lm,y,size:11,font:bold,color:rgb(0.3,0.6,0.2)});y-=4;
+    pg.drawLine({start:{x:lm,y},end:{x:rm,y},thickness:0.5,color:rgb(0.3,0.6,0.2)});y-=14;
+    bgt.value.income.filter(i=>i.label&&i.amount).forEach(item=>{pg.drawText(item.label,{x:lm,y,size:10,font,color:rgb(0.1,0.1,0.1)});pg.drawText('₹'+fmt(item.amount),{x:rm-70,y,size:10,font:bold,color:rgb(0.05,0.59,0.41)});y-=16;});
+    pg.drawText('Total',{x:lm,y,size:10,font:bold});pg.drawText('₹'+fmt(bgtTotalIncome.value),{x:rm-70,y,size:11,font:bold,color:rgb(0.05,0.59,0.41)});
+    y-=24;
+    pg.drawText('EXPENSES',{x:lm,y,size:11,font:bold,color:rgb(0.9,0.2,0.2)});y-=4;
+    pg.drawLine({start:{x:lm,y},end:{x:rm,y},thickness:0.5,color:rgb(0.9,0.2,0.2)});y-=14;
+    bgt.value.expenses.filter(i=>i.label&&i.amount).forEach(item=>{pg.drawText(item.label,{x:lm,y,size:10,font,color:rgb(0.1,0.1,0.1)});pg.drawText('₹'+fmt(item.amount),{x:rm-70,y,size:10,font:bold,color:rgb(0.8,0.1,0.1)});const barW=Math.round((item.amount/Math.max(bgtTotalExpense.value,1))*180);pg.drawRectangle({x:lm+120,y:y-2,width:barW,height:10,color:rgb(0.9,0.2,0.2),opacity:0.3});y-=16;});
+    pg.drawText('Total',{x:lm,y,size:10,font:bold});pg.drawText('₹'+fmt(bgtTotalExpense.value),{x:rm-70,y,size:11,font:bold,color:rgb(0.8,0.1,0.1)});
+    y-=24;
+    pg.drawRectangle({x:lm,y:y-28,width:rm-lm,height:28,color:bgtSavings.value>=0?rgb(0.9,0.97,0.9):rgb(0.97,0.9,0.9)});
+    pg.drawText('NET SAVINGS',{x:lm+8,y:y-14,size:11,font:bold,color:rgb(0.2,0.2,0.2)});
+    pg.drawText('₹'+fmt(bgtSavings.value),{x:rm-90,y:y-14,size:13,font:bold,color:bgtSavings.value>=0?rgb(0.05,0.59,0.41):rgb(0.9,0.2,0.2)});
+    pg.drawText('Generated by Toolify',{x:lm,y:36,size:9,font,color:rgb(0.7,0.7,0.7)});
+    const bytes=await doc.save();
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));a.download='budget-planner.pdf';a.click();
+  };
+
+  return {dark,toggleTheme,fmt,bgt,bgtTotalIncome,bgtTotalExpense,bgtSavings,downloadBudget};
+}}).mount('#app');
+</script>
+</body>
+</html>

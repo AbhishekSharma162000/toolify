@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stamp Duty Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🏢 Stamp Duty Calculator</div><div class="tsub">Property registration cost by state</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:480px">
+    <div class="f"><label>Property Value (₹)</label><input v-model.number="sd.value" type="number" placeholder="5000000"/></div>
+    <div class="f"><label>State</label>
+      <select v-model="sd.state">
+        <option v-for="s in sdStates" :key="s.name" :value="s.name">{{s.name}} ({{s.duty}}% + {{s.reg}}% reg)</option>
+      </select>
+    </div>
+    <div class="f"><label>Owner Gender</label><select v-model="sd.gender"><option value="male">Male</option><option value="female">Female (discount in some states)</option></select></div>
+    <div v-if="sd.value" class="rg" style="margin-top:12px">
+      <div class="rb"><div class="rl">Stamp Duty</div><div class="rv re">₹{{fmt(sdCalc.duty)}}</div></div>
+      <div class="rb"><div class="rl">Registration Fee</div><div class="rv am">₹{{fmt(sdCalc.reg)}}</div></div>
+      <div class="rb"><div class="rl">Total Cost</div><div class="rv re">₹{{fmt(sdCalc.total)}}</div></div>
+      <div class="rb"><div class="rl">Total %</div><div class="rv ac">{{sdCalc.pct}}%</div></div>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+  const sdStates=[{name:'Maharashtra',duty:6,reg:1},{name:'Delhi',duty:6,reg:1},{name:'Karnataka',duty:5,reg:1},{name:'Tamil Nadu',duty:7,reg:1},{name:'Gujarat',duty:4.9,reg:1},{name:'Rajasthan',duty:6,reg:1},{name:'UP',duty:7,reg:1},{name:'West Bengal',duty:6,reg:1}];
+  const sd=ref({value:5000000,state:'Maharashtra',gender:'male'});
+  const sdCalc=computed(()=>{const s=sdStates.find(x=>x.name===sd.value.state)||sdStates[0];let dutyPct=s.duty;if(sd.value.gender==='female'&&sd.value.state==='Maharashtra')dutyPct=5;const duty=Math.round(sd.value.value*dutyPct/100);const reg=Math.round(sd.value.value*s.reg/100);return{duty,reg,total:duty+reg,pct:(dutyPct+s.reg).toFixed(1)};});
+  return {dark,toggleTheme,fmt,fmtS,sdStates,sd,sdCalc};
+}}).mount('#app');
+</script>
+</body>
+</html>

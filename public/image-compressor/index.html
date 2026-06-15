@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image Compressor — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🗜️ Image Compressor</div><div class="tsub">Compress images in browser, no upload</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>loadImg(e.dataTransfer.files[0])" @click="$refs.icInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🖼️</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="icInp" type="file" accept="image/jpeg,image/png" hidden @change="e=>loadImg(e.target.files[0])"/>
+    </div>
+    <div v-if="ic.original" style="margin-top:12px">
+      <div class="f"><label>Quality: {{ic.quality}}%</label><input v-model.number="ic.quality" type="range" min="10" max="100" @input="compressImg"/></div>
+      <div class="rg">
+        <div class="rb"><div class="rl">Original</div><div class="rv">{{ic.origSize}}</div></div>
+        <div class="rb"><div class="rl">Compressed</div><div class="rv gr">{{ic.newSize}}</div></div>
+        <div class="rb"><div class="rl">Saved</div><div class="rv ac">{{ic.saved}}%</div></div>
+        <div class="rb"><div class="rl">Dimensions</div><div class="rv">{{ic.w}}×{{ic.h}}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px">Original</div><img :src="ic.original" style="width:100%;border-radius:7px;border:1px solid var(--border)"/></div>
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px">Compressed</div><img :src="ic.compressed" style="width:100%;border-radius:7px;border:1px solid var(--border)"/></div>
+      </div>
+      <a :href="ic.compressed" download="compressed.jpg" class="btn" style="display:block;text-align:center;text-decoration:none;margin-top:10px">⬇ Download</a>
+    </div>
+    <canvas ref="icCanvas" hidden></canvas>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmtB=_fmtB, loadImgSrc=_loadImgSrc, dlCanvas=_dlCanvas, extFromFmt=_extFromFmt;
+
+  const ic=ref({original:null,compressed:null,origSize:'',newSize:'',saved:0,quality:80,w:0,h:0});
+  const loadImg=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{ic.value.original=e.target.result;ic.value.origSize=fmtB(file.size);const img=new Image();img.onload=()=>{ic.value.w=img.width;ic.value.h=img.height;compressImg();};img.src=e.target.result;};r.readAsDataURL(file);};
+  const compressImg=()=>{if(!ic.value.original)return;const img=new Image();img.onload=()=>{const canvas=document.querySelector('canvas');if(!canvas)return;canvas.width=img.width;canvas.height=img.height;canvas.getContext('2d').drawImage(img,0,0);const out=canvas.toDataURL('image/jpeg',ic.value.quality/100);ic.value.compressed=out;const ol=ic.value.original.length*.75,nl=out.length*.75;ic.value.newSize=fmtB(nl);ic.value.saved=Math.max(0,Math.round((1-nl/ol)*100));};img.src=ic.value.original;};
+
+  return {dark,toggleTheme, ic,loadImg,compressImg};
+}}).mount('#app');
+</script>
+</body>
+</html>

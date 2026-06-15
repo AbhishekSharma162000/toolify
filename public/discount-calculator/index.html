@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Discount Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">🏷️ Discount Calculator</div><div class="tsub">Final price after discount</div>
+  <div class="card" style="max-width:440px">
+    <div class="f"><label>Original Price (₹)</label><input v-model.number="disc.price" type="number" placeholder="1000"/></div>
+    <div class="f"><label>Discount (%)</label><input v-model.number="disc.pct" type="number" placeholder="20"/></div>
+    <div v-if="disc.price&&disc.pct">
+      <div class="big-res"><div style="font-size:11px;color:var(--muted);font-weight:400;margin-bottom:2px">You pay</div><span class="gr">₹{{fmt((disc.price*(1-disc.pct/100)).toFixed(2))}}</span></div>
+      <div class="rg" style="margin-top:10px">
+        <div class="rb"><div class="rl">Original</div><div class="rv">₹{{fmt(disc.price)}}</div></div>
+        <div class="rb"><div class="rl">You Save</div><div class="rv re">₹{{fmt((disc.price*disc.pct/100).toFixed(2))}}</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const disc=ref({price:1000,pct:20});
+
+  return {dark,toggleTheme,fmt,fmtS,disc};
+}}).mount('#app');
+</script>
+</body>
+</html>

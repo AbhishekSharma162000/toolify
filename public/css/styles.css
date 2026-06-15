@@ -63,6 +63,7 @@ body.light .hero{background:linear-gradient(135deg,#f4f4f8,#ede8ff,#eaf7f3)}
 .gb{background:#059669}.rb2{background:#dc2626}
 .drop{border:2px dashed var(--border);border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:border .2s}
 .drop:hover,.drop.over{border-color:var(--p)}
+.grad-prev{width:100%;height:80px;border-radius:9px;margin-bottom:14px;border:1px solid var(--border)}
 .fi{display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg2);border-radius:8px;margin-bottom:5px;font-size:12px;border:1px solid var(--border)}
 .fn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .xb{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px}

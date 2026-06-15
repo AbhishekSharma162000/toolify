@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Passport Photo Maker — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🪪 Passport Photo Maker</div><div class="tsub">Create standard passport size photos — runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:600px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>ppLoad(e.dataTransfer.files[0])" @click="$refs.ppInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">📸</div>
+      <div style="font-size:14px">Drop your photo or <span style="color:var(--p)">browse</span></div>
+      <input ref="ppInp" type="file" accept="image/*" hidden @change="e=>ppLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="ipassport.src" style="margin-top:14px">
+      <div class="f"><label>Passport Size Standard</label>
+        <select v-model="ipassport.preset" @change="ppPreview()">
+          <option value="india">India / UK / EU — 35×45 mm</option>
+          <option value="us">USA — 2×2 inch (51×51 mm)</option>
+          <option value="china">China — 33×48 mm</option>
+          <option value="square">Square — 1:1</option>
+        </select>
+      </div>
+      <div class="f"><label>Background Color</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input v-model="ipassport.bg" type="color" style="width:48px;height:34px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px" @input="ppPreview()"/>
+          <button class="btn-sm" @click="ipassport.bg='#ffffff';ppPreview()">White</button>
+          <button class="btn-sm" @click="ipassport.bg='#aac4e0';ppPreview()">Blue</button>
+          <button class="btn-sm" @click="ipassport.bg='#e8e8e8';ppPreview()">Gray</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Original</div>
+          <img :src="ipassport.src" style="max-width:100%;max-height:160px;border-radius:7px;border:1px solid var(--border)"/>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Preview</div>
+          <canvas id="pp-canvas" style="max-width:100%;max-height:160px;border-radius:7px;border:1px solid var(--border)"></canvas>
+        </div>
+      </div>
+      <button class="btn" @click="ppProcess">📸 Generate & Download</button>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmtB=_fmtB, loadImgSrc=_loadImgSrc, dlCanvas=_dlCanvas, extFromFmt=_extFromFmt;
+
+  const ppPresets={india:{w:413,h:531},us:{w:600,h:600},china:{w:390,h:567},square:{w:300,h:300}};
+  const ipassport=ref({src:null,preset:'india',bg:'#ffffff'});
+  const ppLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{ipassport.value={src:e.target.result,preset:'india',bg:'#ffffff'};Vue.nextTick(ppPreview);};r.readAsDataURL(file);};
+  const ppPreview=async()=>{const v=ipassport.value;if(!v.src)return;const canvas=document.getElementById('pp-canvas');if(!canvas)return;const{w,h}=ppPresets[v.preset]||ppPresets.india;canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.fillStyle=v.bg;ctx.fillRect(0,0,w,h);const img=await loadImgSrc(v.src);const scale=Math.max(w/img.width,h/img.height);const sw=img.width*scale,sh=img.height*scale;ctx.drawImage(img,(w-sw)/2,(h-sh)/2,sw,sh);};
+  const ppProcess=async()=>{await ppPreview();const c=document.getElementById('pp-canvas');if(c)dlCanvas(c,'image/jpeg',95,'passport-photo');};
+
+  return {dark,toggleTheme, ipassport,ppLoad,ppPreview,ppProcess};
+}}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF to Word — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">📝 PDF to Word</div>
+  <div class="tsub">Runs entirely in your browser — nothing uploaded</div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" :class="p2w.over&&'over'" @dragover.prevent="p2w.over=true" @dragleave="p2w.over=false" @drop.prevent="e=>{p2w.over=false;loadPdfForWord(e.dataTransfer.files[0])}" @click="$refs.p2wInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">📕</div>
+      <div v-if="!p2w.file" style="font-size:14px">Drop PDF or <span style="color:var(--p)">browse</span></div>
+      <div v-else style="font-size:13px;color:var(--g)">✓ {{p2w.file.name}}</div>
+      <input ref="p2wInp" type="file" accept=".pdf,application/pdf" hidden @change="e=>loadPdfForWord(e.target.files[0])"/>
+    </div>
+    <div v-if="p2w.info" class="rg" style="margin-top:12px">
+      <div class="rb"><div class="rl">Pages</div><div class="rv ac">{{p2w.info.pages}}</div></div>
+      <div class="rb"><div class="rl">Size</div><div class="rv">{{p2w.info.size}}</div></div>
+    </div>
+    <button v-if="p2w.file" class="btn" :disabled="p2w.loading" @click="convertP2W" style="margin-top:12px">{{p2w.loading?'Extracting...':'Download as .docx →'}}</button>
+    <div v-if="p2w.err" class="err">{{p2w.err}}</div>
+    <div v-if="p2w.done" class="ok">✓ .docx downloaded!</div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const dlPdf=_dlPdf, fmtB=_fmtB;
+
+  const escXml=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const buildZip=files2=>{const enc=new TextEncoder();let offset=0;const parts=[],cd=[];const u32=n=>{const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;};const u16=n=>{const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;};const crc32=data=>{let c=0xFFFFFFFF;const t=[];for(let i=0;i<256;i++){let x=i;for(let j=0;j<8;j++)x=x&1?(0xEDB88320^(x>>>1)):(x>>>1);t[i]=x;}for(let i=0;i<data.length;i++)c=t[(c^data[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;};files2.forEach(({name,data})=>{const nb=enc.encode(name),crc=crc32(data);const lh2=new Uint8Array([0x50,0x4B,0x03,0x04,20,0,0,0,0,0,0,0,0,0,...u32(crc),...u32(data.length),...u32(data.length),...u16(nb.length),0,0,...nb]);cd.push({nb,crc,size:data.length,offset});parts.push(lh2,data);offset+=lh2.length+data.length;});const cdStart=offset;cd.forEach(({nb,crc,size,offset:off})=>{const r=new Uint8Array([0x50,0x4B,0x01,0x02,20,0,20,0,0,0,0,0,0,0,0,0,...u32(crc),...u32(size),...u32(size),...u16(nb.length),0,0,0,0,0,0,0,0,0,0,...u32(off),...nb]);parts.push(r);offset+=r.length;});const eocd=new Uint8Array([0x50,0x4B,0x05,0x06,0,0,0,0,...u16(cd.length),...u16(cd.length),...u32(offset-cdStart),...u32(cdStart),0,0]);parts.push(eocd);const total=parts.reduce((s,p)=>s+p.length,0);const out=new Uint8Array(total);let pos=0;parts.forEach(p=>{out.set(p,pos);pos+=p.length;});return out;};
+
+  const p2w=ref({file:null,over:false,loading:false,err:'',done:false,info:null});
+  const loadPdfForWord=async file=>{if(!file||file.type!=='application/pdf')return;p2w.value.file=file;p2w.value.done=false;p2w.value.err='';const size=fmtB(file.size);try{const{PDFDocument}=PDFLib;const doc=await PDFDocument.load(await file.arrayBuffer());p2w.value.info={pages:doc.getPageCount(),size};}catch(e){p2w.value.err='Error: '+e.message;}};
+  const convertP2W=async()=>{p2w.value.loading=true;p2w.value.err='';p2w.value.done=false;try{const srcBuf=await p2w.value.file.arrayBuffer();const raw=new TextDecoder('latin1').decode(new Uint8Array(srcBuf));const btBlocks=[...raw.matchAll(/BT[\s\S]*?ET/g)];let extracted='';btBlocks.forEach(b=>{[...b[0].matchAll(/\(([^)]*)\)\s*T[jJ]/g)].forEach(m=>extracted+=m[1].replace(/\\n/g,'\n').replace(/\\\(/g,'(').replace(/\\\)/g,')')+' ');[...b[0].matchAll(/\[([^\]]*)\]\s*TJ/g)].forEach(m=>[...m[1].matchAll(/\(([^)]*)\)/g)].forEach(p=>extracted+=p[1]+' '));extracted+='\n';});extracted=extracted.trim()||'[No readable text found]';const enc=new TextEncoder();const docxml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>${escXml(p2w.value.file.name)}</w:t></w:r></w:p>${extracted.split('\n').map(l=>`<w:p><w:r><w:t xml:space="preserve">${escXml(l.trim())}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`;const relsxml=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;const wRels=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;const ct=`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;const zipBytes=buildZip([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(relsxml)},{name:'word/document.xml',data:enc.encode(docxml)},{name:'word/_rels/document.xml.rels',data:enc.encode(wRels)}]);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}));a.download=p2w.value.file.name.replace(/\.pdf$/i,'')+'.docx';a.click();p2w.value.done=true;}catch(e){p2w.value.err='Error: '+e.message;}p2w.value.loading=false;};
+
+  return {dark,toggleTheme,p2w,loadPdfForWord,convertP2W};
+}}).mount('#app');
+</script>
+</body>
+</html>

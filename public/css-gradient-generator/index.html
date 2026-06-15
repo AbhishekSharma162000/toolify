@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CSS Gradient Generator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🌈 CSS Gradient Generator</div><div class="tsub">Beautiful gradients with live preview</div>
+  <div class="card" style="max-width:560px">
+    <div class="grad-prev" :style="{background:gradientCss,height:'100px'}"></div>
+    <div class="r2">
+      <div class="f"><label>Color 1</label><input v-model="grad.c1" type="color"/></div>
+      <div class="f"><label>Color 2</label><input v-model="grad.c2" type="color"/></div>
+    </div>
+    <div class="r2">
+      <div class="f"><label>Direction</label><select v-model="grad.dir"><option value="to right">→ Right</option><option value="to left">← Left</option><option value="to bottom">↓ Down</option><option value="135deg">↘ Diagonal</option></select></div>
+      <div class="f"><label>Type</label><select v-model="grad.type"><option value="linear">Linear</option><option value="radial">Radial</option></select></div>
+    </div>
+    <div style="background:var(--bg2);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;border:1px solid var(--border)">{{gradientCss}}</div>
+    <button class="btn" @click="cp(gradientCss)" style="margin-top:10px">Copy CSS</button>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const cp=_cp;
+  const grad=ref({c1:'#7c6fff',c2:'#5ef0c8',dir:'to right',type:'linear'});
+  const gradientCss=computed(()=>grad.value.type==='linear'?`linear-gradient(${grad.value.dir}, ${grad.value.c1}, ${grad.value.c2})`:`radial-gradient(circle, ${grad.value.c1}, ${grad.value.c2})`);
+  return {dark,toggleTheme,cp,grad,gradientCss};
+}}).mount('#app');
+</script>
+</body>
+</html>

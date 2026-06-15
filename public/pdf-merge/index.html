@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Merge PDF — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔗 Merge PDF</div>
+  <div class="tsub">Runs entirely in your browser — nothing uploaded</div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" :class="merge.over&&'over'" @dragover.prevent="merge.over=true" @dragleave="merge.over=false" @drop.prevent="e=>{merge.over=false;addPdfs(e.dataTransfer.files)}" @click="$refs.mInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">📄</div><div style="font-size:14px">Drop PDFs or <span style="color:var(--p)">browse</span></div>
+      <input ref="mInp" type="file" accept=".pdf" multiple hidden @change="e=>addPdfs(e.target.files)"/>
+    </div>
+    <div v-if="merge.files.length" style="margin:12px 0"><div v-for="(f,i) in merge.files" :key="i" class="fi"><span>📄</span><span class="fn">{{f.name}}</span><span style="font-size:10px;color:var(--muted)">{{(f.size/1024).toFixed(0)}}KB</span><button class="xb" @click="merge.files.splice(i,1)">✕</button></div></div>
+    <button v-if="merge.files.length>=2" class="btn" :disabled="merge.loading" @click="mergePdfs">{{merge.loading?'Merging...':'Merge '+merge.files.length+' PDFs →'}}</button>
+    <div v-if="merge.files.length===1" style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px">Add at least 2 PDFs</div>
+    <div v-if="merge.err" class="err">{{merge.err}}</div>
+    <div v-if="merge.done" class="ok">✓ Downloaded!</div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const dlPdf=_dlPdf, fmtB=_fmtB;
+
+  const merge=ref({files:[],loading:false,err:'',done:false,over:false});
+  const addPdfs=fl=>{for(const f of fl)if(f.type==='application/pdf')merge.value.files.push(f);};
+  const mergePdfs=async()=>{const m=merge.value;m.loading=true;m.err='';m.done=false;try{const{PDFDocument}=PDFLib,mg=await PDFDocument.create();for(const f of m.files){const s=await PDFDocument.load(await f.arrayBuffer());(await mg.copyPages(s,s.getPageIndices())).forEach(p=>mg.addPage(p));}dlPdf(await mg.save(),'merged.pdf');m.done=true;}catch(e){m.err='Error: '+e.message;}m.loading=false;};
+
+  return {dark,toggleTheme,merge,addPdfs,mergePdfs};
+}}).mount('#app');
+</script>
+</body>
+</html>

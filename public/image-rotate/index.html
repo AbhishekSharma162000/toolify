@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image Rotate & Flip — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔄 Rotate & Flip Image</div><div class="tsub">Rotate or flip images — runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>rotLoad(e.dataTransfer.files[0])" @click="$refs.rotInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🔄</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="rotInp" type="file" accept="image/*" hidden @change="e=>rotLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="irotate.src" style="margin-top:14px">
+      <div class="tabs">
+        <button class="tab" @click="rotApply('r90')">↻ 90° CW</button>
+        <button class="tab" @click="rotApply('l90')">↺ 90° CCW</button>
+        <button class="tab" @click="rotApply('r180')">↩ 180°</button>
+        <button class="tab" @click="rotApply('fh')">↔ Flip H</button>
+        <button class="tab" @click="rotApply('fv')">↕ Flip V</button>
+      </div>
+      <canvas id="rot-canvas" style="max-width:100%;max-height:320px;border-radius:7px;border:1px solid var(--border);display:block;margin:0 auto 10px"></canvas>
+      <div class="f"><label>Output Format</label><select v-model="irotate.fmt"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div>
+      <button class="btn" @click="rotDownload">⬇ Download</button>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmtB=_fmtB, loadImgSrc=_loadImgSrc, dlCanvas=_dlCanvas, extFromFmt=_extFromFmt;
+
+  const irotate=ref({src:null,fmt:'image/jpeg',angle:0,flipH:false,flipV:false});
+  const rotLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{irotate.value={src:e.target.result,fmt:'image/jpeg',angle:0,flipH:false,flipV:false};Vue.nextTick(rotRender);};r.readAsDataURL(file);};
+  const rotRender=async()=>{const v=irotate.value;if(!v.src)return;const canvas=document.getElementById('rot-canvas');if(!canvas)return;const img=await loadImgSrc(v.src);const deg=(v.angle%360+360)%360,rad=deg*Math.PI/180;const ow=img.width,oh=img.height;const sw=(deg===90||deg===270)?oh:ow,sh=(deg===90||deg===270)?ow:oh;canvas.width=sw;canvas.height=sh;const ctx=canvas.getContext('2d');ctx.save();ctx.translate(sw/2,sh/2);ctx.rotate(rad);ctx.scale(v.flipH?-1:1,v.flipV?-1:1);ctx.drawImage(img,-ow/2,-oh/2);ctx.restore();};
+  const rotApply=op=>{const v=irotate.value;if(op==='r90')v.angle=(v.angle+90)%360;else if(op==='l90')v.angle=(v.angle+270)%360;else if(op==='r180')v.angle=(v.angle+180)%360;else if(op==='fh')v.flipH=!v.flipH;else if(op==='fv')v.flipV=!v.flipV;Vue.nextTick(rotRender);};
+  const rotDownload=()=>{const c=document.getElementById('rot-canvas');if(c)dlCanvas(c,irotate.value.fmt,92,'rotated');};
+
+  return {dark,toggleTheme, irotate,rotLoad,rotRender,rotApply,rotDownload};
+}}).mount('#app');
+</script>
+</body>
+</html>

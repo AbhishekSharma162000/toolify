@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Age Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🎂 Age Calculator</div><div class="tsub">Exact age in years, months and days</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:440px">
+    <div class="f"><label>Date of Birth</label><input v-model="age.dob" type="date"/></div>
+    <div class="f"><label>Calculate On</label><input v-model="age.on" type="date"/></div>
+    <button class="btn" @click="calcAge">Calculate</button>
+    <div v-if="age.res">
+      <div style="font-size:48px;font-weight:800;color:var(--p);text-align:center;margin:14px 0 4px">{{age.res.y}} years</div>
+      <div style="text-align:center;color:var(--muted);font-size:13px;margin-bottom:14px">{{age.res.m}} months, {{age.res.d}} days</div>
+      <div class="rg">
+        <div class="rb"><div class="rl">Total Months</div><div class="rv ac">{{fmt(age.res.tm)}}</div></div>
+        <div class="rb"><div class="rl">Total Days</div><div class="rv gr">{{fmt(age.res.td)}}</div></div>
+        <div class="rb"><div class="rl">Total Hours</div><div class="rv">{{fmt(age.res.th)}}</div></div>
+        <div class="rb"><div class="rl">Next Birthday</div><div class="rv am">{{age.res.nb}} days</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+  const age=ref({dob:'',on:new Date().toISOString().split('T')[0],res:null});
+  const calcAge=()=>{const d=new Date(age.value.dob),o=new Date(age.value.on);let y=o.getFullYear()-d.getFullYear(),m=o.getMonth()-d.getMonth(),da=o.getDate()-d.getDate();if(da<0){m--;da+=new Date(o.getFullYear(),o.getMonth(),0).getDate();}if(m<0){y--;m+=12;}const td=Math.floor((o-d)/86400000);const nb=new Date(o.getFullYear(),d.getMonth(),d.getDate());if(nb<=o)nb.setFullYear(nb.getFullYear()+1);age.value.res={y,m,d:da,tm:y*12+m,td,th:td*24,nb:Math.ceil((nb-o)/86400000)};};
+  return {dark,toggleTheme,fmt,fmtS,age,calcAge};
+}}).mount('#app');
+</script>
+</body>
+</html>

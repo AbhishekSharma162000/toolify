@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image OCR — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔍 Image OCR</div><div class="tsub">Extract text from any image — Tesseract.js, runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:620px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>ocrLoad(e.dataTransfer.files[0])" @click="$refs.ocrInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🔍</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="ocrInp" type="file" accept="image/*" hidden @change="e=>ocrLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="ocr.src" style="margin-top:14px">
+      <div class="f"><label>Language</label>
+        <select v-model="ocr.lang">
+          <option value="eng">English</option>
+          <option value="hin">Hindi</option>
+          <option value="spa">Spanish</option>
+          <option value="fra">French</option>
+          <option value="deu">German</option>
+          <option value="por">Portuguese</option>
+          <option value="ara">Arabic</option>
+          <option value="chi_sim">Chinese (Simplified)</option>
+          <option value="jpn">Japanese</option>
+        </select>
+      </div>
+      <img :src="ocr.src" style="width:100%;max-height:200px;object-fit:contain;border-radius:7px;border:1px solid var(--border);margin-bottom:10px;background:var(--bg2)"/>
+      <button class="btn" :disabled="ocr.loading" @click="runOcr">{{ocr.loading?ocr.progress||'Processing...':'🔍 Extract Text'}}</button>
+      <div v-if="ocr.text" style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:11px;color:var(--muted)">Extracted Text</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn-sm" @click="cp(ocr.text)">Copy</button>
+            <button class="btn-sm" @click="downloadOcrText">⬇ .txt</button>
+          </div>
+        </div>
+        <div class="code-out" style="max-height:220px;font-family:inherit;font-size:12px;line-height:1.7;white-space:pre-wrap">{{ocr.text}}</div>
+      </div>
+      <div v-if="ocr.err" class="err">{{ocr.err}}</div>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmtB=_fmtB, loadImgSrc=_loadImgSrc, dlCanvas=_dlCanvas, extFromFmt=_extFromFmt;
+  const cp=v=>navigator.clipboard.writeText(String(v));
+
+  const ocr=ref({src:null,lang:'eng',loading:false,progress:'',text:'',err:''});
+  const ocrLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{ocr.value.src=e.target.result;ocr.value.text='';ocr.value.err='';};r.readAsDataURL(file);};
+  const runOcr=async()=>{ocr.value.loading=true;ocr.value.err='';ocr.value.text='';ocr.value.progress='Loading...';try{const result=await Tesseract.recognize(ocr.value.src,ocr.value.lang,{logger:m=>{if(m.status)ocr.value.progress=m.status+(m.progress?' '+Math.round(m.progress*100)+'%':'');}});ocr.value.text=result.data.text;}catch(e){ocr.value.err='Error: '+e.message;}ocr.value.loading=false;};
+  const downloadOcrText=()=>{const a=document.createElement('a');a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(ocr.value.text);a.download='extracted-text.txt';a.click();};
+
+  return {dark,toggleTheme, ocr,ocrLoad,runOcr,downloadOcrText,cp};
+}}).mount('#app');
+</script>
+</body>
+</html>

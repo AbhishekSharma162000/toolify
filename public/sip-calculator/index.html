@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIP Investment Planner — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">📈 SIP Investment Planner</div><div class="tsub">Mutual fund returns with compound growth</div>
+  <div class="cl">
+    <div class="card">
+      <div class="f"><label>Monthly Investment (₹)</label><input v-model.number="sip.m" type="number" placeholder="5000"/></div>
+      <div class="f"><label>Expected Return (%/year)</label><input v-model.number="sip.r" type="number" step="0.1" placeholder="12"/></div>
+      <div class="f"><label>Period (years)</label><input v-model.number="sip.y" type="number" placeholder="10"/></div>
+      <button class="btn" @click="calcSip">Calculate</button>
+    </div>
+    <div v-if="sip.res" class="card">
+      <div class="rg">
+        <div class="rb"><div class="rl">Invested</div><div class="rv">₹{{fmtS(sip.res.inv)}}</div></div>
+        <div class="rb"><div class="rl">Returns</div><div class="rv gr">₹{{fmtS(sip.res.ret)}}</div></div>
+        <div class="rb"><div class="rl">Total Value</div><div class="rv ac">₹{{fmtS(sip.res.total)}}</div></div>
+        <div class="rb"><div class="rl">Wealth</div><div class="rv am">{{sip.res.mul}}x</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const sip=ref({m:5000,r:12,y:10,res:null});
+  const calcSip=()=>{
+    const r=sip.value.r/100/12, n=sip.value.y*12, m=sip.value.m;
+    const total=Math.round(m*(Math.pow(1+r,n)-1)/r*(1+r)), inv=m*n, ret=total-inv;
+    sip.value.res={inv,ret,total,mul:(total/inv).toFixed(2)};
+  };
+
+  return {dark,toggleTheme,fmt,fmtS,sip,calcSip};
+}}).mount('#app');
+</script>
+</body>
+</html>

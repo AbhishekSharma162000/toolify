@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rent vs Buy Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🏡 Rent vs Buy Calculator</div><div class="tsub">Should you rent or buy a home?</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card">
+    <div class="cl">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px">RENTING</div>
+        <div class="f"><label>Monthly Rent (₹)</label><input v-model.number="rvb.rent" type="number" placeholder="25000"/></div>
+        <div class="f"><label>Annual Rent Increase (%)</label><input v-model.number="rvb.rentInc" type="number" placeholder="5"/></div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px">BUYING</div>
+        <div class="f"><label>Property Price (₹)</label><input v-model.number="rvb.price" type="number" placeholder="8000000"/></div>
+        <div class="f"><label>Down Payment (%)</label><input v-model.number="rvb.down" type="number" placeholder="20"/></div>
+        <div class="f"><label>Loan Rate (%)</label><input v-model.number="rvb.rate" type="number" step="0.1" placeholder="8.5"/></div>
+      </div>
+    </div>
+    <div class="f"><label>Analysis Period (years)</label><input v-model.number="rvb.years" type="number" placeholder="10" style="max-width:200px"/></div>
+    <button class="btn" style="max-width:200px" @click="calcRvb">Compare</button>
+    <div v-if="rvb.res" class="rg" style="margin-top:14px">
+      <div class="rb"><div class="rl">Total Rent Cost</div><div class="rv re">₹{{fmtS(rvb.res.totalRent)}}</div></div>
+      <div class="rb"><div class="rl">Total Buy Cost</div><div class="rv am">₹{{fmtS(rvb.res.totalBuy)}}</div></div>
+      <div class="rb"><div class="rl">Down Payment</div><div class="rv">₹{{fmtS(rvb.res.downAmt)}}</div></div>
+      <div class="rb"><div class="rl">Verdict</div><div class="rv" :class="rvb.res.verdict==='BUY'?'gr':'ac'">{{rvb.res.verdict}} 👈</div></div>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+  const rvb=ref({rent:25000,rentInc:5,price:8000000,down:20,rate:8.5,years:10,res:null});
+  const calcRvb=()=>{const downAmt=Math.round(rvb.value.price*rvb.value.down/100);const loan=rvb.value.price-downAmt;const r=rvb.value.rate/100/12,n=rvb.value.years*12;const emiAmt=loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);const totalBuy=Math.round(emiAmt*n+downAmt);let totalRent=0,rent=rvb.value.rent;for(let i=0;i<rvb.value.years;i++){totalRent+=rent*12;rent=Math.round(rent*(1+rvb.value.rentInc/100));}rvb.value.res={totalRent:Math.round(totalRent),totalBuy,downAmt,verdict:totalRent<totalBuy?'RENT':'BUY'};};
+  return {dark,toggleTheme,fmt,fmtS,rvb,calcRvb};
+}}).mount('#app');
+</script>
+</body>
+</html>

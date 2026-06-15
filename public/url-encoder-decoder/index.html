@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>URL Encoder/Decoder — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔗 URL Encoder / Decoder</div><div class="tsub">Encode or decode URL components</div>
+  <div class="card">
+    <div class="tabs"><button :class="['tab',ue.mode==='encode'&&'active']" @click="ue.mode='encode'">Encode</button><button :class="['tab',ue.mode==='decode'&&'active']" @click="ue.mode='decode'">Decode</button></div>
+    <div class="f"><label>Input</label><textarea v-model="ue.input" :placeholder="ue.mode==='encode'?'hello world':'hello%20world'"></textarea></div>
+    <div v-if="ue.input"><div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 5px"><span style="font-size:11px;color:var(--muted)">Result</span><button class="btn-sm" @click="cp(ueResult)">Copy</button></div><div class="code-out">{{ueResult}}</div></div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const cp=_cp;
+  const ue=ref({input:'',mode:'encode'});
+  const ueResult=computed(()=>{try{return ue.value.mode==='encode'?encodeURIComponent(ue.value.input):decodeURIComponent(ue.value.input);}catch{return'Invalid';}});
+  return {dark,toggleTheme,cp,ue,ueResult};
+}}).mount('#app');
+</script>
+</body>
+</html>

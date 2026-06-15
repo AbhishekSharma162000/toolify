@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Word Counter — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">📝 Word Counter</div><div class="tsub">Words, characters &amp; reading time</div>
+  <div class="card">
+    <div class="f"><label>Paste or type text</label><textarea v-model="wc.text" placeholder="Start typing..." style="min-height:140px"></textarea></div>
+    <div class="wcg">
+      <div class="wcb"><div class="wcn">{{wcS.words}}</div><div class="wcl">Words</div></div>
+      <div class="wcb"><div class="wcn">{{wcS.chars}}</div><div class="wcl">Chars</div></div>
+      <div class="wcb"><div class="wcn">{{wcS.noSpace}}</div><div class="wcl">No Spaces</div></div>
+      <div class="wcb"><div class="wcn">{{wcS.sentences}}</div><div class="wcl">Sentences</div></div>
+      <div class="wcb"><div class="wcn">{{wcS.para}}</div><div class="wcl">Paragraphs</div></div>
+      <div class="wcb"><div class="wcn">{{wcS.read}}</div><div class="wcl">Min Read</div></div>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const cp=_cp;
+  const wc=ref({text:''});
+  const wcS=computed(()=>{const t=wc.value.text,words=t.trim()?t.trim().split(/\s+/).length:0;return{words,chars:t.length,noSpace:t.replace(/\s/g,'').length,sentences:t.split(/[.!?]+/).filter(s=>s.trim()).length,para:t.split(/\n\s*\n/).filter(p=>p.trim()).length||(words?1:0),read:Math.max(1,Math.round(words/200))};});
+  return {dark,toggleTheme,wc,wcS};
+}}).mount('#app');
+</script>
+</body>
+</html>

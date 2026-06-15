@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EPF / PF Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">🏦 EPF / PF Calculator</div><div class="tsub">Employee Provident Fund maturity</div>
+  <div class="card" style="max-width:480px">
+    <div class="f"><label>Basic + DA (₹/month)</label><input v-model.number="pf.basic" type="number" placeholder="30000"/></div>
+    <div class="r2">
+      <div class="f"><label>Your Contribution (%)</label><input v-model.number="pf.empPct" type="number" placeholder="12"/></div>
+      <div class="f"><label>Employer Contribution (%)</label><input v-model.number="pf.emrPct" type="number" placeholder="12"/></div>
+    </div>
+    <div class="r2">
+      <div class="f"><label>Interest Rate (%)</label><input v-model.number="pf.rate" type="number" step="0.1" placeholder="8.25"/></div>
+      <div class="f"><label>Years to Retirement</label><input v-model.number="pf.years" type="number" placeholder="30"/></div>
+    </div>
+    <div v-if="pf.basic&&pf.years" style="margin-top:12px">
+      <div class="rg">
+        <div class="rb"><div class="rl">Monthly Contribution</div><div class="rv ac">₹{{fmt(Math.round(pf.basic*(pf.empPct+pf.emrPct)/100))}}</div></div>
+        <div class="rb"><div class="rl">Annual Contribution</div><div class="rv">₹{{fmt(Math.round(pf.basic*(pf.empPct+pf.emrPct)/100*12))}}</div></div>
+      </div>
+      <div class="big-res gr">₹{{fmtS(pfMaturity)}}</div>
+      <div style="text-align:center;color:var(--muted);font-size:12px;margin-top:6px">Estimated Maturity</div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const pf=ref({basic:30000,empPct:12,emrPct:12,rate:8.25,years:30});
+  const pfMaturity=computed(()=>{
+    if(!pf.value.basic||!pf.value.years)return 0;
+    const monthly=Math.round(pf.value.basic*(pf.value.empPct+pf.value.emrPct)/100);
+    const r=pf.value.rate/100/12, n=pf.value.years*12;
+    return Math.round(monthly*(Math.pow(1+r,n)-1)/r*(1+r));
+  });
+
+  return {dark,toggleTheme,fmt,fmtS,pf,pfMaturity};
+}}).mount('#app');
+</script>
+</body>
+</html>

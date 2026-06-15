@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Business Proposal Generator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">📋 Business Proposal</div>
+  <div class="tsub">Fill proposal details — download a professional PDF</div>
+  <div class="cl">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="r2">
+          <div class="f"><label>Your Company</label><input v-model="prop.company" placeholder="ABC Solutions"/></div>
+          <div class="f"><label>Client Company</label><input v-model="prop.client" placeholder="XYZ Corp"/></div>
+          <div class="f"><label>Your Name</label><input v-model="prop.yourName" placeholder="Rahul Sharma"/></div>
+          <div class="f"><label>Client Name</label><input v-model="prop.clientName" placeholder="Priya Mehta"/></div>
+          <div class="f"><label>Date</label><input v-model="prop.date" type="date"/></div>
+          <div class="f"><label>Valid Until</label><input v-model="prop.validTill" type="date"/></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="f"><label>Project Title</label><input v-model="prop.title" placeholder="Website Development &amp; SEO"/></div>
+        <div class="f"><label>Executive Summary</label><textarea v-model="prop.summary" placeholder="Brief overview of your proposal..." style="min-height:70px"></textarea></div>
+        <div class="f"><label>Problem Statement</label><textarea v-model="prop.problem" placeholder="Client's pain points..." style="min-height:70px"></textarea></div>
+        <div class="f"><label>Proposed Solution</label><textarea v-model="prop.solution" placeholder="How you solve their problem..." style="min-height:70px"></textarea></div>
+        <div class="f"><label>Timeline</label><textarea v-model="prop.timeline" placeholder="Week 1-2: Design&#10;Week 3-4: Development" style="min-height:60px"></textarea></div>
+        <div class="f"><label>Terms &amp; Conditions</label><textarea v-model="prop.terms" placeholder="50% advance to begin. Balance on delivery." style="min-height:60px"></textarea></div>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px">DELIVERABLES &amp; PRICING</div>
+        <div v-for="(item,i) in prop.items" :key="i" style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end">
+          <div class="f" style="margin-bottom:0;flex:2"><label>Deliverable</label><input v-model="item.desc" placeholder="Custom Website"/></div>
+          <div class="f" style="margin-bottom:0;flex:1"><label>Price (₹)</label><input v-model.number="item.price" type="number" placeholder="25000"/></div>
+          <button class="xb" @click="prop.items.splice(i,1)" style="margin-bottom:2px">✕</button>
+        </div>
+        <button class="btn-o" @click="prop.items.push({desc:'',price:0})">+ Add Deliverable</button>
+        <div v-if="propTotal" style="margin-top:10px;text-align:right;font-size:16px;font-weight:700;color:var(--p)">Total: ₹{{fmt(propTotal)}}</div>
+      </div>
+      <button class="btn" @click="downloadProposal">⬇ Download Proposal PDF</button>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">PREVIEW</div>
+      <div style="background:#fff;color:#1a1a2e;border-radius:10px;padding:20px;font-size:11px;line-height:1.7;border:1px solid var(--border);max-height:600px;overflow-y:auto">
+        <div style="background:#7c6fff;padding:16px;border-radius:6px;margin-bottom:14px">
+          <div style="font-size:16px;font-weight:800;color:#fff">{{prop.title||'Project Proposal'}}</div>
+          <div style="color:#ddd;font-size:10px;margin-top:4px">By {{prop.company||'Your Company'}} for {{prop.client||'Client'}} · {{prop.date}}</div>
+        </div>
+        <div v-if="prop.summary"><div style="font-weight:700;color:#7c6fff;font-size:11px;margin-bottom:4px">EXECUTIVE SUMMARY</div><p style="color:#333;margin-bottom:10px">{{prop.summary}}</p></div>
+        <div v-if="prop.items.some(i=>i.desc)">
+          <div style="font-weight:700;color:#7c6fff;font-size:11px;margin-bottom:6px">PRICING</div>
+          <div v-for="item in prop.items.filter(i=>i.desc)" :key="item.desc" style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee;font-size:11px">
+            <span>{{item.desc}}</span><span style="font-weight:600">₹{{fmt(item.price||0)}}</span>
+          </div>
+          <div style="text-align:right;font-weight:700;color:#7c6fff;margin-top:6px">Total: ₹{{fmt(propTotal)}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS, dlPdf=_dlPdf;
+
+  const prop=ref({company:'',client:'',yourName:'',clientName:'',date:new Date().toISOString().split('T')[0],validTill:'',title:'',summary:'',problem:'',solution:'',timeline:'',terms:'50% advance required to begin. Balance due on delivery.',items:[{desc:'',price:0}]});
+  const propTotal=computed(()=>prop.value.items.reduce((s,i)=>s+(i.price||0),0));
+  const downloadProposal=async()=>{
+    const{PDFDocument,StandardFonts,rgb}=PDFLib;
+    const doc=await PDFDocument.create();
+    const font=await doc.embedFont(StandardFonts.Helvetica);
+    const bold=await doc.embedFont(StandardFonts.HelveticaBold);
+    const pw2=595,ph=842,mg=48,rm=pw2-48;
+    let pg=doc.addPage([pw2,ph]);let y=ph-48;
+    const chk=()=>{if(y<mg+20){pg=doc.addPage([pw2,ph]);y=ph-mg;}};
+    const wrap=text=>{const ws=String(text||'').split(' ');const ls=[];let cur='';for(const w of ws){const t=cur?cur+' '+w:w;if(font.widthOfTextAtSize(t,10)<=rm-mg){cur=t;}else{if(cur)ls.push(cur);cur=w;}}if(cur)ls.push(cur);return ls.length?ls:[''];};
+    const para=text=>{wrap(text).forEach(l=>{chk();pg.drawText(l,{x:mg,y,size:10,font,color:rgb(0.15,0.15,0.15)});y-=14;});y-=4;};
+    const sec=title=>{if(y<mg+40){pg=doc.addPage([pw2,ph]);y=ph-mg;}y-=10;pg.drawText(title,{x:mg,y,size:11,font:bold,color:rgb(0.48,0.44,1)});y-=4;pg.drawLine({start:{x:mg,y},end:{x:rm,y},thickness:0.5,color:rgb(0.48,0.44,1)});y-=14;};
+    pg.drawRectangle({x:0,y:ph-120,width:pw2,height:120,color:rgb(0.48,0.44,1)});
+    pg.drawText('BUSINESS PROPOSAL',{x:mg,y:ph-52,size:20,font:bold,color:rgb(1,1,1)});
+    pg.drawText(prop.value.title||'Project Proposal',{x:mg,y:ph-76,size:13,font,color:rgb(0.9,0.9,1)});
+    pg.drawText('By: '+(prop.value.company||'Your Company')+'   For: '+(prop.value.client||'Client'),{x:mg,y:ph-96,size:10,font,color:rgb(0.8,0.8,0.9)});
+    pg.drawText('Date: '+prop.value.date+'   Valid: '+prop.value.validTill,{x:mg,y:ph-110,size:9,font,color:rgb(0.8,0.8,0.9)});
+    y=ph-140;
+    if(prop.value.summary){sec('EXECUTIVE SUMMARY');para(prop.value.summary);}
+    if(prop.value.problem){sec('PROBLEM STATEMENT');para(prop.value.problem);}
+    if(prop.value.solution){sec('PROPOSED SOLUTION');para(prop.value.solution);}
+    if(prop.value.items.some(i=>i.desc)){
+      sec('DELIVERABLES & PRICING');
+      pg.drawRectangle({x:mg,y:y-16,width:rm-mg,height:18,color:rgb(0.95,0.95,0.97)});
+      pg.drawText('Deliverable',{x:mg+6,y:y-4,size:10,font:bold,color:rgb(0.2,0.2,0.2)});
+      pg.drawText('Price',{x:rm-55,y:y-4,size:10,font:bold,color:rgb(0.2,0.2,0.2)});
+      y-=20;
+      prop.value.items.filter(i=>i.desc).forEach((item,idx)=>{chk();if(idx%2===1)pg.drawRectangle({x:mg,y:y-12,width:rm-mg,height:16,color:rgb(0.98,0.98,0.99)});pg.drawText(item.desc,{x:mg+6,y,size:10,font,color:rgb(0.15,0.15,0.15)});pg.drawText('Rs.'+fmt(item.price||0),{x:rm-60,y,size:10,font:bold,color:rgb(0.15,0.15,0.15)});y-=18;});
+      chk(24);pg.drawRectangle({x:rm-120,y:y-16,width:120,height:20,color:rgb(0.48,0.44,1)});
+      pg.drawText('TOTAL: Rs.'+fmt(propTotal.value),{x:rm-114,y:y-4,size:11,font:bold,color:rgb(1,1,1)});y-=24;
+    }
+    if(prop.value.timeline){sec('TIMELINE');para(prop.value.timeline);}
+    if(prop.value.terms){sec('TERMS & CONDITIONS');para(prop.value.terms);}
+    y-=10;chk(60);
+    pg.drawText('Authorised Signatory',{x:mg,y,size:10,font:bold});
+    pg.drawText(prop.value.yourName||'',{x:mg,y:y-16,size:10,font,color:rgb(0.3,0.3,0.3)});
+    pg.drawText(prop.value.company||'',{x:mg,y:y-30,size:9,font,color:rgb(0.5,0.5,0.5)});
+    pg.drawText('Generated by Toolify',{x:mg,y:36,size:9,font,color:rgb(0.7,0.7,0.7)});
+    const bytes=await doc.save();
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));a.download='proposal.pdf';a.click();
+  };
+
+  return {dark,toggleTheme,fmt,prop,propTotal,downloadProposal};
+}}).mount('#app');
+</script>
+</body>
+</html>

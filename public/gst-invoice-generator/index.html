@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GST Invoice Generator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">📃 GST Invoice Generator</div><div class="tsub">Professional GST invoices → download PDF</div>
+  <div class="card">
+    <div class="r2">
+      <div class="f"><label>Your Business</label><input v-model="inv.from" placeholder="ABC Enterprises"/></div>
+      <div class="f"><label>Client Name</label><input v-model="inv.to" placeholder="XYZ Pvt Ltd"/></div>
+      <div class="f"><label>Invoice No.</label><input v-model="inv.num" placeholder="INV-001"/></div>
+      <div class="f"><label>Date</label><input v-model="inv.date" type="date"/></div>
+      <div class="f"><label>GSTIN</label><input v-model="inv.gstin" placeholder="22AAAAA0000A1Z5"/></div>
+      <div class="f"><label>GST Rate</label><select v-model.number="inv.gstRate"><option value="5">5%</option><option value="12">12%</option><option value="18">18%</option><option value="28">28%</option></select></div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--muted);margin:10px 0 6px">LINE ITEMS</div>
+    <table class="inv-table">
+      <tr><th>Description</th><th>Qty</th><th>Rate (₹)</th><th>Amount</th><th></th></tr>
+      <tr v-for="(item,i) in inv.items" :key="i">
+        <td><input v-model="item.desc" placeholder="Item" style="background:transparent;border:none;color:inherit;width:100%;outline:none;font-size:12px"/></td>
+        <td><input v-model.number="item.qty" type="number" style="background:transparent;border:none;color:inherit;width:50px;outline:none;font-size:12px" min="1"/></td>
+        <td><input v-model.number="item.rate" type="number" style="background:transparent;border:none;color:inherit;width:70px;outline:none;font-size:12px"/></td>
+        <td style="font-weight:600">₹{{fmt((item.qty||0)*(item.rate||0))}}</td>
+        <td><button class="xb" @click="inv.items.splice(i,1)">✕</button></td>
+      </tr>
+    </table>
+    <button class="btn-o" @click="inv.items.push({desc:'',qty:1,rate:0})" style="margin-bottom:12px">+ Add Item</button>
+    <div style="text-align:right;font-size:13px;color:var(--muted)">Subtotal: ₹{{fmt(invSubtotal)}}</div>
+    <div style="text-align:right;font-size:13px;color:var(--muted)">GST ({{inv.gstRate}}%): ₹{{fmt(invGst)}}</div>
+    <div style="text-align:right;font-size:20px;font-weight:700;color:var(--g);margin:6px 0 12px">Total: ₹{{fmt(invTotal)}}</div>
+    <button class="btn" @click="genInvoicePdf">⬇ Download Invoice PDF</button>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const inv=ref({from:'',to:'',num:'INV-001',date:new Date().toISOString().split('T')[0],gstin:'',gstRate:18,items:[{desc:'Service Charge',qty:1,rate:5000}]});
+  const invSubtotal=computed(()=>inv.value.items.reduce((s,i)=>s+(i.qty||0)*(i.rate||0),0));
+  const invGst=computed(()=>Math.round(invSubtotal.value*inv.value.gstRate/100));
+  const invTotal=computed(()=>invSubtotal.value+invGst.value);
+  const genInvoicePdf=async()=>{
+    const{PDFDocument,rgb,StandardFonts}=PDFLib;
+    const doc=await PDFDocument.create();
+    const pg=doc.addPage([595,842]);
+    const font=await doc.embedFont(StandardFonts.Helvetica);
+    const bold=await doc.embedFont(StandardFonts.HelveticaBold);
+    const{width:w,height:h}=pg.getSize();
+    const lm=50,rm=w-50;let y=h-50;
+    pg.drawRectangle({x:0,y:h-80,width:w,height:80,color:rgb(0.48,0.44,1)});
+    pg.drawText('INVOICE',{x:lm,y:h-52,size:26,font:bold,color:rgb(1,1,1)});
+    pg.drawText(inv.value.num||'INV-001',{x:rm-100,y:h-45,size:13,font,color:rgb(1,1,1)});
+    pg.drawText('Date: '+inv.value.date,{x:rm-100,y:h-63,size:10,font,color:rgb(0.9,0.9,0.9)});
+    y=h-100;
+    pg.drawText('FROM',{x:lm,y,size:9,font,color:rgb(0.5,0.5,0.5)});
+    pg.drawText('TO',{x:300,y,size:9,font,color:rgb(0.5,0.5,0.5)});
+    y-=16;
+    pg.drawText(inv.value.from||'Your Business',{x:lm,y,size:12,font:bold,color:rgb(0.1,0.1,0.1)});
+    pg.drawText(inv.value.to||'Client',{x:300,y,size:12,font:bold,color:rgb(0.1,0.1,0.1)});
+    y-=20;
+    pg.drawRectangle({x:lm,y:y-4,width:rm-lm,height:22,color:rgb(0.95,0.95,0.97)});
+    ['Description','Qty','Rate','Amount'].forEach((t,i)=>pg.drawText(t,{x:[lm+6,370,420,490][i],y:y+4,size:10,font:bold,color:rgb(0.2,0.2,0.2)}));
+    y-=24;
+    inv.value.items.forEach((item,i)=>{
+      const amt=(item.qty||0)*(item.rate||0);
+      if(i%2===1)pg.drawRectangle({x:lm,y:y-4,width:rm-lm,height:20,color:rgb(0.98,0.98,0.99)});
+      pg.drawText((item.desc||'Item').slice(0,40),{x:lm+6,y:y+2,size:10,font,color:rgb(0.15,0.15,0.15)});
+      pg.drawText(String(item.qty||0),{x:376,y:y+2,size:10,font,color:rgb(0.15,0.15,0.15)});
+      pg.drawText(fmt(item.rate||0),{x:416,y:y+2,size:10,font,color:rgb(0.15,0.15,0.15)});
+      pg.drawText('Rs.'+fmt(amt),{x:480,y:y+2,size:10,font,color:rgb(0.15,0.15,0.15)});
+      y-=22;
+    });
+    y-=10;
+    pg.drawLine({start:{x:lm,y},end:{x:rm,y},thickness:0.5,color:rgb(0.8,0.8,0.8)});
+    y-=16;
+    pg.drawText('Subtotal:',{x:400,y,size:10,font,color:rgb(0.4,0.4,0.4)});
+    pg.drawText('Rs.'+fmt(invSubtotal.value),{x:480,y,size:10,font});
+    y-=16;
+    pg.drawText('GST ('+inv.value.gstRate+'%):',{x:400,y,size:10,font,color:rgb(0.4,0.4,0.4)});
+    pg.drawText('Rs.'+fmt(invGst.value),{x:480,y,size:10,font});
+    y-=20;
+    pg.drawRectangle({x:390,y:y-6,width:rm-390,height:24,color:rgb(0.48,0.44,1)});
+    pg.drawText('TOTAL:',{x:396,y:y+2,size:11,font:bold,color:rgb(1,1,1)});
+    pg.drawText('Rs.'+fmt(invTotal.value),{x:460,y:y+2,size:11,font:bold,color:rgb(1,1,1)});
+    pg.drawText('Thank you!',{x:lm,y:50,size:10,font,color:rgb(0.5,0.5,0.5)});
+    const bytes=await doc.save();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+    a.download=(inv.value.num||'invoice')+'.pdf';
+    a.click();
+  };
+
+  return {dark,toggleTheme,fmt,fmtS,inv,invSubtotal,invGst,invTotal,genInvoicePdf};
+}}).mount('#app');
+</script>
+</body>
+</html>

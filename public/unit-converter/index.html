@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unit Converter — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">📏 Unit Converter</div>
+  <div class="tsub">Length, weight, temperature and data size</div>
+  <div class="pcards">
+    <div class="card" v-for="conv in unitConvs" :key="conv.id">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">{{conv.icon}} {{conv.label}}</div>
+      <div class="f"><label>Value</label><input v-model.number="uc[conv.id].val" type="number" placeholder="1"/></div>
+      <div class="r2">
+        <div class="f"><label>From</label><select v-model="uc[conv.id].from"><option v-for="u in conv.units" :key="u.k" :value="u.k">{{u.l}}</option></select></div>
+        <div class="f"><label>To</label><select v-model="uc[conv.id].to"><option v-for="u in conv.units" :key="u.k" :value="u.k">{{u.l}}</option></select></div>
+      </div>
+      <div v-if="uc[conv.id].val" class="ures"><div class="rv ac">{{doConvert(conv,uc[conv.id])}}</div><div class="rl" style="margin-top:3px">{{uc[conv.id].val}} {{uc[conv.id].from}} = {{doConvert(conv,uc[conv.id])}} {{uc[conv.id].to}}</div></div>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+
+  const unitConvs=[
+    {id:'len', icon:'📏',label:'Length',     type:'factor',units:[{k:'mm',l:'mm',m:0.001},{k:'cm',l:'cm',m:0.01},{k:'m',l:'Meter',m:1},{k:'km',l:'km',m:1000},{k:'in',l:'Inch',m:0.0254},{k:'ft',l:'Foot',m:0.3048},{k:'mi',l:'Mile',m:1609.344}]},
+    {id:'wt',  icon:'⚖️',label:'Weight',     type:'factor',units:[{k:'g',l:'Gram',m:0.001},{k:'kg',l:'kg',m:1},{k:'t',l:'Ton',m:1000},{k:'oz',l:'Ounce',m:0.0283495},{k:'lb',l:'Pound',m:0.453592}]},
+    {id:'data',icon:'💾',label:'Data Size',  type:'factor',units:[{k:'KB',l:'KB',m:1024},{k:'MB',l:'MB',m:1048576},{k:'GB',l:'GB',m:1073741824},{k:'TB',l:'TB',m:1099511627776}]},
+    {id:'temp',icon:'🌡️',label:'Temperature',type:'temp',  units:[{k:'C',l:'Celsius'},{k:'F',l:'Fahrenheit'},{k:'K',l:'Kelvin'}]},
+  ];
+  const uc=ref({len:{val:1,from:'m',to:'ft'},wt:{val:1,from:'kg',to:'lb'},data:{val:1,from:'GB',to:'MB'},temp:{val:100,from:'C',to:'F'}});
+  const doConvert=(conv,st)=>{if(conv.type==='factor'){const f=conv.units.find(u=>u.k===st.from),t=conv.units.find(u=>u.k===st.to);return+(st.val*f.m/t.m).toFixed(6);}const v=st.val,f=st.from,to=st.to;let c=f==='C'?v:f==='F'?(v-32)*5/9:v-273.15;return+(to==='C'?c:to==='F'?c*9/5+32:c+273.15).toFixed(2);};
+
+  return {dark,toggleTheme,unitConvs,uc,doConvert};
+}}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image Cropper — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">✂️ Image Cropper</div><div class="tsub">Crop images to exact dimensions — runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:620px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>cropLoad(e.dataTransfer.files[0])" @click="$refs.cropInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">✂️</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="cropInp" type="file" accept="image/*" hidden @change="e=>cropLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="icrop.src" style="margin-top:14px">
+      <div class="rg">
+        <div class="rb"><div class="rl">Image W×H</div><div class="rv">{{icrop.imgW}}×{{icrop.imgH}}</div></div>
+        <div class="rb"><div class="rl">Crop W×H</div><div class="rv ac">{{icrop.w}}×{{icrop.h}}</div></div>
+      </div>
+      <div class="tabs" style="margin-bottom:10px">
+        <button v-for="p in cropPresets" :key="p.l" class="tab" @click="applyCropPreset(p)">{{p.l}}</button>
+      </div>
+      <div class="r2">
+        <div class="f"><label>X offset (px)</label><input v-model.number="icrop.x" type="number" min="0" :max="icrop.imgW-1"/></div>
+        <div class="f"><label>Y offset (px)</label><input v-model.number="icrop.y" type="number" min="0" :max="icrop.imgH-1"/></div>
+      </div>
+      <div class="r2">
+        <div class="f"><label>Width (px)</label><input v-model.number="icrop.w" type="number" min="1" :max="icrop.imgW"/></div>
+        <div class="f"><label>Height (px)</label><input v-model.number="icrop.h" type="number" min="1" :max="icrop.imgH"/></div>
+      </div>
+      <img :src="icrop.src" style="width:100%;border-radius:7px;border:1px solid var(--border);margin-bottom:10px;display:block"/>
+      <div class="f"><label>Output Format</label><select v-model="icrop.fmt"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div>
+      <button class="btn" @click="cropProcess">✂️ Crop & Download</button>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmtB=_fmtB, loadImgSrc=_loadImgSrc, dlCanvas=_dlCanvas, extFromFmt=_extFromFmt;
+
+  const cropPresets=[{l:'Square 1:1',r:1},{l:'4:3',r:4/3},{l:'16:9',r:16/9},{l:'3:4',r:3/4}];
+  const icrop=ref({src:null,imgW:0,imgH:0,x:0,y:0,w:0,h:0,fmt:'image/jpeg'});
+  const cropLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{icrop.value={src:e.target.result,imgW:img.width,imgH:img.height,x:0,y:0,w:img.width,h:img.height,fmt:'image/jpeg'};};img.src=e.target.result;};r.readAsDataURL(file);};
+  const applyCropPreset=p=>{const{imgW,imgH}=icrop.value;let w=imgW,h=Math.round(w/p.r);if(h>imgH){h=imgH;w=Math.round(h*p.r);}icrop.value.w=w;icrop.value.h=h;icrop.value.x=Math.round((imgW-w)/2);icrop.value.y=Math.round((imgH-h)/2);};
+  const cropProcess=async()=>{const v=icrop.value;if(!v.src)return;const img=await loadImgSrc(v.src);const c=document.createElement('canvas');c.width=v.w;c.height=v.h;c.getContext('2d').drawImage(img,v.x,v.y,v.w,v.h,0,0,v.w,v.h);dlCanvas(c,v.fmt,92,'cropped');};
+
+  return {dark,toggleTheme, icrop,cropPresets,cropLoad,applyCropPreset,cropProcess};
+}}).mount('#app');
+</script>
+</body>
+</html>

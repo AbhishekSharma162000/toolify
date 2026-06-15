@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Landing Page Builder — Free Online Tool | Toolzyo</title>
+<meta name="description" content="Build stunning landing pages visually with drag-and-drop. No code required. Export clean HTML instantly. Free forever.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="canonical" href="https://toolzyo.shop/landing-page-builder/">
+
+<!-- Page loader — inline so it's visible before any external CSS loads -->
+<style>
+#page-loader{position:fixed;inset:0;z-index:99999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+/* Back button — visible above the builder overlay */
+#back-btn{
+  position:fixed;top:10px;left:12px;z-index:100000;
+  display:flex;align-items:center;gap:6px;
+  background:rgba(22,26,44,.88);
+  border:1px solid rgba(108,99,255,.35);
+  color:#c8cadf;
+  padding:5px 12px 5px 9px;
+  border-radius:7px;
+  font-size:0.8rem;font-weight:600;
+  text-decoration:none;
+  backdrop-filter:blur(6px);
+  transition:background .15s,border-color .15s,color .15s;
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+#back-btn:hover{background:rgba(108,99,255,.22);border-color:rgba(108,99,255,.65);color:#fff;}
+#back-btn i{font-size:0.75rem;}
+</style>
+
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="stylesheet" href="/css/lc-builder.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="dark">
+
+<!-- Page loader -->
+<div id="page-loader"><div class="pl-ring"></div></div>
+
+<!-- Back to Toolzyo button — floats above the builder -->
+<a id="back-btn" href="/">
+  <i class="fa fa-arrow-left"></i> Toolzyo
+</a>
+
+<!-- ═══════════════════════════════════════════
+     LANDING PAGE BUILDER ROOT
+     lc-builder.css scopes everything to #lc-app
+     ═══════════════════════════════════════════ -->
+<div id="lc-app">
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <i class="fa fa-layer-group"></i>
+      LandingCraft
+    </div>
+
+    <div class="topbar-center">
+      <!-- Mode toggle -->
+      <div class="mode-toggle">
+        <button class="mode-btn" id="modeEdit" onclick="setMode('edit')"><i class="fa fa-pencil"></i> Edit</button>
+        <button class="mode-btn" id="modePreview" onclick="setMode('preview')"><i class="fa fa-eye"></i> Preview</button>
+      </div>
+
+      <div class="tb-divider"></div>
+
+      <!-- Undo / Redo -->
+      <button class="tb-icon-btn" onclick="undoAction()" title="Undo (Ctrl+Z)"><i class="fa fa-rotate-left"></i></button>
+      <button class="tb-icon-btn" onclick="redoAction()" title="Redo (Ctrl+Y)"><i class="fa fa-rotate-right"></i></button>
+
+      <div class="tb-divider"></div>
+
+      <!-- Grid toggle -->
+      <button class="tb-icon-btn" id="gridBtn" onclick="toggleGrid()" title="Toggle Grid"><i class="fa fa-border-all"></i></button>
+    </div>
+
+    <div class="topbar-right">
+      <button class="tb-btn clear-btn" onclick="clearCanvas()" title="Clear canvas"><i class="fa fa-trash"></i> Clear</button>
+      <button class="tb-btn template-btn" onclick="openTemplates()"><i class="fa fa-wand-magic-sparkles"></i> Templates</button>
+      <button class="tb-btn export-btn" onclick="openExport()"><i class="fa fa-download"></i> Export</button>
+    </div>
+  </div>
+  <!-- /TOPBAR -->
+
+  <!-- ── MAIN APP LAYOUT ── -->
+  <div class="app-layout">
+
+    <!-- LEFT SIDEBAR — Components -->
+    <div class="sidebar">
+      <div class="sidebar-title"><i class="fa fa-cubes" style="margin-right:6px;"></i>Components</div>
+
+      <div class="component-search">
+        <input type="text" placeholder="Search components…" oninput="filterComponents(this.value)">
+      </div>
+
+      <div class="components-list">
+
+        <div class="comp-group">
+          <div class="comp-group-title">Sections</div>
+          <div class="comp-item" draggable="true" data-type="navbar" data-label="navbar navigation"><i class="fa fa-bars"></i> Navbar</div>
+          <div class="comp-item" draggable="true" data-type="hero" data-label="hero banner headline"><i class="fa fa-star"></i> Hero</div>
+          <div class="comp-item" draggable="true" data-type="features" data-label="features grid cards"><i class="fa fa-table-cells-large"></i> Features</div>
+          <div class="comp-item" draggable="true" data-type="pricing" data-label="pricing plans cards"><i class="fa fa-tag"></i> Pricing</div>
+          <div class="comp-item" draggable="true" data-type="testimonial" data-label="testimonial reviews"><i class="fa fa-quote-left"></i> Testimonials</div>
+          <div class="comp-item" draggable="true" data-type="stats" data-label="stats numbers metrics"><i class="fa fa-chart-bar"></i> Stats</div>
+          <div class="comp-item" draggable="true" data-type="team" data-label="team members people"><i class="fa fa-users"></i> Team</div>
+          <div class="comp-item" draggable="true" data-type="faq" data-label="faq accordion questions"><i class="fa fa-circle-question"></i> FAQ</div>
+          <div class="comp-item" draggable="true" data-type="cta" data-label="cta call to action"><i class="fa fa-bolt"></i> CTA</div>
+          <div class="comp-item" draggable="true" data-type="footer" data-label="footer links"><i class="fa fa-shoe-prints"></i> Footer</div>
+        </div>
+
+        <div class="comp-group">
+          <div class="comp-group-title">Forms & Capture</div>
+          <div class="comp-item" draggable="true" data-type="email-form" data-label="email form capture subscribe"><i class="fa fa-envelope"></i> Email Capture</div>
+          <div class="comp-item" draggable="true" data-type="contact-form" data-label="contact form message"><i class="fa fa-paper-plane"></i> Contact Form</div>
+          <div class="comp-item" draggable="true" data-type="newsletter" data-label="newsletter subscribe"><i class="fa fa-newspaper"></i> Newsletter</div>
+        </div>
+
+        <div class="comp-group">
+          <div class="comp-group-title">Content</div>
+          <div class="comp-item" draggable="true" data-type="logo-strip" data-label="logo strip brands trusted"><i class="fa fa-award"></i> Logo Strip</div>
+          <div class="comp-item" draggable="true" data-type="countdown" data-label="countdown timer deadline"><i class="fa fa-clock"></i> Countdown</div>
+          <div class="comp-item" draggable="true" data-type="image" data-label="image photo picture"><i class="fa fa-image"></i> Image</div>
+          <div class="comp-item" draggable="true" data-type="video" data-label="video youtube embed"><i class="fa fa-circle-play"></i> Video</div>
+        </div>
+
+        <div class="comp-group">
+          <div class="comp-group-title">Typography</div>
+          <div class="comp-item" draggable="true" data-type="heading" data-label="heading h1 title"><i class="fa fa-heading"></i> Heading</div>
+          <div class="comp-item" draggable="true" data-type="subheading" data-label="subheading h2 subtitle"><i class="fa fa-h"></i> Subheading</div>
+          <div class="comp-item" draggable="true" data-type="paragraph" data-label="paragraph text body"><i class="fa fa-align-left"></i> Paragraph</div>
+          <div class="comp-item" draggable="true" data-type="bullet-list" data-label="bullet list checklist"><i class="fa fa-list-check"></i> Bullet List</div>
+          <div class="comp-item" draggable="true" data-type="quote" data-label="quote blockquote testimonial"><i class="fa fa-quote-right"></i> Quote</div>
+          <div class="comp-item" draggable="true" data-type="badge" data-label="badge tag label pill"><i class="fa fa-certificate"></i> Badge</div>
+          <div class="comp-item" draggable="true" data-type="button" data-label="button cta link action"><i class="fa fa-hand-pointer"></i> Button</div>
+        </div>
+
+        <div class="comp-group">
+          <div class="comp-group-title">Layout</div>
+          <div class="comp-item" draggable="true" data-type="two-col" data-label="two column layout grid"><i class="fa fa-table-columns"></i> 2 Columns</div>
+          <div class="comp-item" draggable="true" data-type="three-col" data-label="three column layout grid"><i class="fa fa-pause" style="transform:rotate(90deg)"></i> 3 Columns</div>
+          <div class="comp-item" draggable="true" data-type="divider" data-label="divider separator line rule"><i class="fa fa-minus"></i> Divider</div>
+          <div class="comp-item" draggable="true" data-type="spacer" data-label="spacer gap space padding"><i class="fa fa-arrows-up-down"></i> Spacer</div>
+          <div class="comp-item" draggable="true" data-type="section" data-label="section container block custom"><i class="fa fa-square-dashed"></i> Section</div>
+          <div class="comp-item" draggable="true" data-type="icon" data-label="icon font awesome symbol"><i class="fa fa-icons"></i> Icon</div>
+        </div>
+
+      </div>
+    </div>
+    <!-- /LEFT SIDEBAR -->
+
+    <!-- CENTER — Canvas -->
+    <div class="canvas-wrapper">
+
+      <!-- Canvas toolbar (size / grid controls) -->
+      <div class="canvas-toolbar">
+        <span class="canvas-size-label">View:</span>
+        <button class="size-btn active" onclick="setCanvasSize('desktop')"><i class="fa fa-desktop"></i> Desktop</button>
+        <button class="size-btn" onclick="setCanvasSize('tablet')"><i class="fa fa-tablet-screen-button"></i> Tablet</button>
+        <button class="size-btn" onclick="setCanvasSize('mobile')"><i class="fa fa-mobile-screen-button"></i> Mobile</button>
+        <span class="canvas-dim-label" id="canvasDimLabel">1200px</span>
+      </div>
+
+      <!-- Scrollable canvas area -->
+      <div class="canvas-scroll">
+        <div class="canvas desktop-canvas edit-mode" id="canvas">
+
+          <!-- Empty state -->
+          <div id="emptyState" class="canvas-empty-state" style="display:flex;">
+            <i class="fa fa-layer-group fa-3x"></i>
+            <p style="font-size:1.05rem;font-weight:600;color:#888;">Your canvas is empty</p>
+            <p style="font-size:0.88rem;color:#aaa;text-align:center;max-width:280px;line-height:1.6;">
+              Drag components from the left panel, or load a template to get started instantly.
+            </p>
+            <button class="btn-primary" onclick="openTemplates()">
+              <i class="fa fa-wand-magic-sparkles"></i> Browse Templates
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <!-- /CENTER -->
+
+    <!-- RIGHT SIDEBAR — Properties -->
+    <div class="sidebar right-sidebar">
+      <div class="sidebar-title"><i class="fa fa-sliders" style="margin-right:6px;"></i>Properties</div>
+      <div id="propertiesPanel">
+        <div class="no-selection">
+          <i class="fa fa-mouse-pointer"></i>
+          <p>Click an element to edit its properties</p>
+        </div>
+      </div>
+    </div>
+    <!-- /RIGHT SIDEBAR -->
+
+  </div>
+  <!-- /APP LAYOUT -->
+
+  <!-- ═══════════════════════════════════════════
+       TEMPLATES MODAL
+       ═══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="templatesModal">
+    <div class="modal large-modal">
+      <div class="modal-header">
+        <h2><i class="fa fa-wand-magic-sparkles" style="color:#6c63ff;"></i> Choose a Template</h2>
+        <button class="modal-close" onclick="closeModal('templatesModal')"><i class="fa fa-xmark"></i></button>
+      </div>
+
+      <div class="template-filters">
+        <button class="filter-btn active" onclick="filterTemplates('all',this)">All</button>
+        <button class="filter-btn" onclick="filterTemplates('saas',this)">SaaS</button>
+        <button class="filter-btn" onclick="filterTemplates('ecommerce',this)">Ecommerce</button>
+        <button class="filter-btn" onclick="filterTemplates('agency',this)">Agency</button>
+        <button class="filter-btn" onclick="filterTemplates('startup',this)">Startup</button>
+        <button class="filter-btn" onclick="filterTemplates('webinar',this)">Webinar</button>
+        <button class="filter-btn" onclick="filterTemplates('portfolio',this)">Portfolio</button>
+      </div>
+
+      <div class="templates-grid" id="templatesGrid">
+        <!-- Populated by renderTemplatesGrid() in lc-builder.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       EXPORT MODAL
+       ═══════════════════════════════════════════ -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2><i class="fa fa-download" style="color:#43e97b;"></i> Export Page</h2>
+        <button class="modal-close" onclick="closeModal('exportModal')"><i class="fa fa-xmark"></i></button>
+      </div>
+
+      <div class="export-settings" style="padding:16px 20px 0;">
+        <label>
+          Page Title
+          <input id="exportTitle" type="text" placeholder="My Landing Page" value="My Landing Page">
+        </label>
+        <label>
+          Meta Description (optional)
+          <input id="exportMeta" type="text" placeholder="Describe your page for SEO…">
+        </label>
+      </div>
+
+      <div class="export-options">
+        <div class="export-card" onclick="exportHTML()">
+          <i class="fa fa-file-code fa-2x"></i>
+          <h3>Download HTML</h3>
+          <p>Single self-contained HTML file with all styles inlined</p>
+        </div>
+        <div class="export-card" onclick="copyHTMLToClipboard()">
+          <i class="fa fa-clipboard fa-2x"></i>
+          <h3>Copy HTML</h3>
+          <p>Copy the full HTML source to your clipboard</p>
+        </div>
+        <div class="export-card" onclick="exportZip()">
+          <i class="fa fa-file-zipper fa-2x"></i>
+          <h3>Download ZIP</h3>
+          <p>HTML + assets bundled as a ZIP archive</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       COLOR PICKER OVERLAY
+       ═══════════════════════════════════════════ -->
+  <div class="color-picker-overlay" id="colorPickerOverlay" style="display:none;" onclick="if(event.target===this)this.style.display='none';">
+    <div class="color-picker-popup" onclick="event.stopPropagation()">
+      <div style="font-size:0.8rem;font-weight:700;color:var(--lc-muted);margin-bottom:4px;">Preset Colors</div>
+      <div class="preset-colors" id="presetColors"></div>
+      <div style="font-size:0.8rem;font-weight:700;color:var(--lc-muted);margin:4px 0 2px;">Custom Color</div>
+      <input type="color" id="customColorInput" value="#6c63ff">
+      <button onclick="applyColor()">Apply Color</button>
+      <button onclick="document.getElementById('colorPickerOverlay').style.display='none'">Cancel</button>
+    </div>
+  </div>
+
+</div>
+<!-- /#lc-app -->
+
+<!-- Scripts — lc-templates must load before lc-builder -->
+<script src="/js/tool-base.js"></script>
+<script src="/js/lc-templates.js"></script>
+<script src="/js/lc-builder.js"></script>
+
+<script>
+// Hide loader once the builder has initialised
+(function() {
+  _hideLoader();
+
+  // Show loader on same-origin page navigations (back button, etc.)
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest('a');
+    if (!a || a.target === '_blank' || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    var href = a.getAttribute('href');
+    if (!href || href === '#' || href.startsWith('javascript')) return;
+    try {
+      var u = new URL(a.href, location.href);
+      if (u.origin === location.origin && u.pathname !== location.pathname) _showLoader();
+    } catch(err) {}
+  }, true);
+
+  // If browser restores from bfcache, hide loader
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      var l = document.getElementById('page-loader');
+      if (l) l.style.display = 'none';
+    }
+  });
+})();
+</script>
+</body>
+</html>

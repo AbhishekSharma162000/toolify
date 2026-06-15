@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF Rotate Pages — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔁 Rotate PDF Pages</div><div class="tsub">Rotate all or specific pages — runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>prtLoad(e.dataTransfer.files[0])" @click="$refs.prtInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🔁</div>
+      <div v-if="!prt.file" style="font-size:14px">Drop PDF or <span style="color:var(--p)">browse</span></div>
+      <div v-else style="font-size:13px;color:var(--g)">✓ {{prt.file.name}}</div>
+      <input ref="prtInp" type="file" accept=".pdf" hidden @change="e=>prtLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="prt.file" style="margin-top:14px">
+      <div class="r2">
+        <div class="f"><label>Rotation</label>
+          <select v-model.number="prt.angle">
+            <option :value="90">90° Clockwise</option>
+            <option :value="180">180°</option>
+            <option :value="270">90° Counter-clockwise</option>
+          </select>
+        </div>
+        <div class="f"><label>Pages</label><input v-model="prt.pages" placeholder="all or 1,3,5-7"/></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Examples: "all" · "1,3,5" · "2-4" · "1,3-5,8"</div>
+      <button class="btn" :disabled="prt.loading" @click="rotatePdfPages">{{prt.loading?'Processing...':'🔁 Rotate & Download →'}}</button>
+    </div>
+    <div v-if="prt.err" class="err">{{prt.err}}</div>
+    <div v-if="prt.done" class="ok">✓ Rotated PDF downloaded!</div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const dlPdf=_dlPdf, hexToRgb=_hexToRgb;
+
+  // PDF Rotate Pages
+  const prt=ref({file:null,angle:90,pages:'all',loading:false,err:'',done:false});
+  const prtLoad=file=>{if(!file||file.type!=='application/pdf')return;prt.value.file=file;prt.value.done=false;prt.value.err='';};
+  const rotatePdfPages=async()=>{prt.value.loading=true;prt.value.err='';prt.value.done=false;try{const{PDFDocument,degrees}=PDFLib;const doc=await PDFDocument.load(await prt.value.file.arrayBuffer());const pages=doc.getPages();let indices=[];if(prt.value.pages==='all'){indices=pages.map((_,i)=>i);}else{prt.value.pages.split(',').forEach(part=>{const m=part.trim().match(/^(\d+)-(\d+)$/);if(m){for(let j=+m[1]-1;j<=+m[2]-1;j++)if(j>=0&&j<pages.length)indices.push(j);}else{const n=+part.trim()-1;if(n>=0&&n<pages.length)indices.push(n);}});}indices.forEach(i=>{const cur=pages[i].getRotation().angle;pages[i].setRotation(degrees((cur+prt.value.angle)%360));});dlPdf(await doc.save(),'rotated.pdf');prt.value.done=true;}catch(e){prt.value.err='Error: '+e.message;}prt.value.loading=false;};
+
+  return {dark,toggleTheme, prt,prtLoad,rotatePdfPages};
+}}).mount('#app');
+</script>
+</body>
+</html>

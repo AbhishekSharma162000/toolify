@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Regex Tester — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔍 Regex Tester</div><div class="tsub">Test regular expressions with live matching</div>
+  <div class="card">
+    <div class="r2">
+      <div class="f"><label>Regular Expression</label><input v-model="rx.pattern" placeholder="[a-z]+"/></div>
+      <div class="f"><label>Flags</label><input v-model="rx.flags" placeholder="gi" style="max-width:80px"/></div>
+    </div>
+    <div class="f"><label>Test String</label><textarea v-model="rx.text" placeholder="Enter test text..." style="min-height:100px"></textarea></div>
+    <div v-if="rx.pattern&&rx.text">
+      <div class="rg" style="margin-top:4px">
+        <div class="rb"><div class="rl">Matches</div><div class="rv" :class="rxMatches.length?'gr':'re'">{{rxMatches.length}}</div></div>
+        <div class="rb"><div class="rl">Status</div><div class="rv" :class="rxErr?'re':'gr'">{{rxErr?'Invalid':'Valid'}}</div></div>
+      </div>
+      <div v-if="rxMatches.length&&!rxErr" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+        <span v-for="(m,i) in rxMatches" :key="i" style="background:rgba(255,200,0,.2);border:1px solid rgba(255,200,0,.4);border-radius:4px;padding:2px 8px;font-size:12px;font-family:monospace">{{m}}</span>
+      </div>
+      <div v-if="rxErr" class="err">{{rxErr}}</div>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const cp=_cp;
+  const rx=ref({pattern:'',flags:'gi',text:''});
+  const rxMatches=computed(()=>{if(!rx.value.pattern||!rx.value.text)return[];try{return[...rx.value.text.matchAll(new RegExp(rx.value.pattern,rx.value.flags))].map(m=>m[0]);}catch{return[];}});
+  const rxErr=computed(()=>{if(!rx.value.pattern)return'';try{new RegExp(rx.value.pattern,rx.value.flags);return'';}catch(e){return e.message;}});
+  return {dark,toggleTheme,cp,rx,rxMatches,rxErr};
+}}).mount('#app');
+</script>
+</body>
+</html>

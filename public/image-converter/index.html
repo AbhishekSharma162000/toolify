@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image Converter — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔀 Image Converter</div><div class="tsub">Convert between JPEG, PNG, and WebP — runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>convLoad(e.dataTransfer.files[0])" @click="$refs.convInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🔀</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="convInp" type="file" accept="image/*" hidden @change="e=>convLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="iconvert.src" style="margin-top:14px">
+      <div class="rg">
+        <div class="rb"><div class="rl">File</div><div class="rv" style="font-size:12px;word-break:break-all">{{iconvert.origName}}</div></div>
+        <div class="rb"><div class="rl">Size</div><div class="rv">{{iconvert.origSize}}</div></div>
+      </div>
+      <div class="f"><label>Convert To</label>
+        <select v-model="iconvert.fmt">
+          <option value="image/jpeg">JPEG (.jpg)</option>
+          <option value="image/png">PNG (.png)</option>
+          <option value="image/webp">WebP (.webp)</option>
+        </select>
+      </div>
+      <div v-if="iconvert.fmt!=='image/png'" class="f"><label>Quality: {{iconvert.quality}}%</label><input v-model.number="iconvert.quality" type="range" min="10" max="100"/></div>
+      <img :src="iconvert.src" style="width:100%;border-radius:7px;border:1px solid var(--border);margin-bottom:10px"/>
+      <button class="btn" @click="convProcess">🔀 Convert & Download</button>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmtB=_fmtB, loadImgSrc=_loadImgSrc, dlCanvas=_dlCanvas, extFromFmt=_extFromFmt;
+
+  const iconvert=ref({src:null,origName:'',origSize:'',fmt:'image/jpeg',quality:90});
+  const convLoad=file=>{if(!file)return;iconvert.value.origName=file.name;iconvert.value.origSize=fmtB(file.size);const r=new FileReader();r.onload=e=>{iconvert.value.src=e.target.result;};r.readAsDataURL(file);};
+  const convProcess=async()=>{const v=iconvert.value;if(!v.src)return;const img=await loadImgSrc(v.src);const c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);dlCanvas(c,v.fmt,v.quality,'converted');};
+
+  return {dark,toggleTheme, iconvert,convLoad,convProcess};
+}}).mount('#app');
+</script>
+</body>
+</html>

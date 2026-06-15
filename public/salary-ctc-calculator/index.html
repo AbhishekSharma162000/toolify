@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Salary / CTC Breakup Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">💼 Salary / CTC Breakup</div><div class="tsub">CTC to take-home breakdown</div>
+  <div class="cl">
+    <div class="card">
+      <div class="f"><label>Annual CTC (₹)</label><input v-model.number="sal.ctc" type="number" placeholder="1200000"/></div>
+      <div class="f"><label>Basic % of CTC</label><input v-model.number="sal.basicPct" type="number" placeholder="40"/></div>
+      <div class="f"><label>HRA % of Basic</label><input v-model.number="sal.hraPct" type="number" placeholder="50"/></div>
+      <button class="btn" @click="calcSal">Calculate</button>
+    </div>
+    <div v-if="sal.res" class="card">
+      <div class="rg">
+        <div class="rb"><div class="rl">Monthly Take-Home</div><div class="rv gr">₹{{fmt(sal.res.takeHome)}}</div></div>
+        <div class="rb"><div class="rl">Annual Take-Home</div><div class="rv ac">₹{{fmt(sal.res.takeHomeAnnual)}}</div></div>
+        <div class="rb"><div class="rl">PF (Employee)</div><div class="rv">₹{{fmt(sal.res.pf)}}</div></div>
+        <div class="rb"><div class="rl">Income Tax</div><div class="rv re">₹{{fmt(sal.res.tax)}}</div></div>
+      </div>
+      <div class="slabs">
+        <div class="sr"><span>Basic</span><span>₹{{fmt(sal.res.basic)}}</span></div>
+        <div class="sr"><span>HRA</span><span>₹{{fmt(sal.res.hra)}}</span></div>
+        <div class="sr"><span>Special Allowance</span><span>₹{{fmt(sal.res.special)}}</span></div>
+        <div class="sr"><span style="font-weight:600">Gross Salary</span><span style="font-weight:700;color:var(--p)">₹{{fmt(sal.res.gross)}}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const sal=ref({ctc:1200000,basicPct:40,hraPct:50,res:null});
+  const calcSal=()=>{
+    const basic=Math.round(sal.value.ctc*sal.value.basicPct/100);
+    const hra=Math.round(basic*sal.value.hraPct/100);
+    const pf=Math.round(Math.min(basic,180000)*.12);
+    const gross=sal.value.ctc-pf;
+    const special=Math.max(0,gross-basic-hra);
+    let taxable=Math.max(0,gross-75000),taxAmt=0,rem=taxable;
+    for(const[lim,rate]of[[300000,0],[300000,.05],[300000,.1],[300000,.15],[300000,.2],[Infinity,.3]]){
+      const c=Math.min(rem,lim);
+      taxAmt+=c*rate;
+      rem-=c;
+      if(rem<=0)break;
+    }
+    taxAmt=Math.round(taxAmt*1.04);
+    sal.value.res={basic,hra,special,gross,pf:pf*2,epf:pf,tax:taxAmt,takeHomeAnnual:gross-pf-taxAmt,takeHome:Math.round((gross-pf-taxAmt)/12)};
+  };
+
+  return {dark,toggleTheme,fmt,fmtS,sal,calcSal};
+}}).mount('#app');
+</script>
+</body>
+</html>

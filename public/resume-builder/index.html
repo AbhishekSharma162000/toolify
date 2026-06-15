@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resume Builder — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">📄 Resume Builder</div>
+  <div class="tsub">Fill your details, choose a template, download as PDF instantly</div>
+  <div class="tmpl-grid">
+    <div v-for="t in resumeTemplates" :key="t.id" :class="['tmpl-card',rv.template===t.id&&'sel']" @click="rv.template=t.id">
+      <div style="font-size:28px">{{t.icon}}</div>
+      <div style="font-size:13px;font-weight:600;margin-top:6px">{{t.name}}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">{{t.desc}}</div>
+    </div>
+  </div>
+  <div class="cl">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px">PERSONAL INFO</div>
+        <div class="f"><label>Full Name</label><input v-model="rv.name" placeholder="John Doe"/></div>
+        <div class="f"><label>Job Title</label><input v-model="rv.title" placeholder="Software Engineer"/></div>
+        <div class="r2">
+          <div class="f"><label>Email</label><input v-model="rv.email" placeholder="john@email.com"/></div>
+          <div class="f"><label>Phone</label><input v-model="rv.phone" placeholder="+91 98765 43210"/></div>
+        </div>
+        <div class="r2">
+          <div class="f"><label>Location</label><input v-model="rv.location" placeholder="Mumbai, India"/></div>
+          <div class="f"><label>LinkedIn</label><input v-model="rv.linkedin" placeholder="linkedin.com/in/johndoe"/></div>
+        </div>
+        <div class="f"><label>Summary</label>
+          <div class="rich-tb">
+            <button type="button" class="rtb-btn" @mousedown.prevent="fmtAt('**','**')"><b>B</b></button>
+            <button type="button" class="rtb-btn" @mousedown.prevent="fmtAt('*','*')"><i>I</i></button>
+            <button type="button" class="rtb-btn" @mousedown.prevent="fmtAt('• ')">• List</button>
+          </div>
+          <textarea v-model="rv.summary" placeholder="Experienced software engineer with 5+ years...&#10;Use **bold**, *italic*, or • bullets"></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px">EXPERIENCE</div>
+        <div v-for="(exp,i) in rv.experience" :key="i" style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+          <div class="r2">
+            <div class="f"><label>Job Title</label><input v-model="exp.title" placeholder="Senior Developer"/></div>
+            <div class="f"><label>Company</label><input v-model="exp.company" placeholder="Google"/></div>
+          </div>
+          <div class="r2">
+            <div class="f"><label>Duration</label><input v-model="exp.duration" placeholder="2020 – Present"/></div>
+            <div class="f"><label>Location</label><input v-model="exp.location" placeholder="Bangalore"/></div>
+          </div>
+          <div class="f"><label>Description</label>
+            <div class="rich-tb">
+              <button type="button" class="rtb-btn" @mousedown.prevent="fmtAt('**','**')"><b>B</b></button>
+              <button type="button" class="rtb-btn" @mousedown.prevent="fmtAt('*','*')"><i>I</i></button>
+              <button type="button" class="rtb-btn" @mousedown.prevent="fmtAt('• ')">• List</button>
+            </div>
+            <textarea v-model="exp.desc" placeholder="• Led team of 5 engineers&#10;• Built scalable APIs&#10;Use **bold** or *italic*" style="min-height:70px"></textarea>
+          </div>
+          <button class="btn-o" @click="rv.experience.splice(i,1)" style="font-size:11px;padding:4px 10px">Remove</button>
+        </div>
+        <button class="btn-o" @click="rv.experience.push({title:'',company:'',duration:'',location:'',desc:''})">+ Add Experience</button>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px">EDUCATION</div>
+        <div v-for="(edu,i) in rv.education" :key="i" style="margin-bottom:10px">
+          <div class="r2">
+            <div class="f"><label>Degree</label><input v-model="edu.degree" placeholder="B.Tech Computer Science"/></div>
+            <div class="f"><label>Institution</label><input v-model="edu.school" placeholder="IIT Mumbai"/></div>
+          </div>
+          <div class="r2">
+            <div class="f"><label>Year</label><input v-model="edu.year" placeholder="2016 – 2020"/></div>
+            <div class="f"><label>CGPA / Grade</label><input v-model="edu.grade" placeholder="8.5 CGPA"/></div>
+          </div>
+        </div>
+        <button class="btn-o" @click="rv.education.push({degree:'',school:'',year:'',grade:''})">+ Add Education</button>
+      </div>
+      <div class="card">
+        <div class="f"><label>Skills (comma separated)</label><input v-model="rv.skills" placeholder="JavaScript, Python, React, Node.js"/></div>
+        <div class="f"><label>Certifications</label>
+          <div class="rich-tb">
+            <button type="button" class="rtb-btn" @mousedown.prevent="fmtAt('**','**')"><b>B</b></button>
+            <button type="button" class="rtb-btn" @mousedown.prevent="fmtAt('• ')">• List</button>
+          </div>
+          <textarea v-model="rv.certs" placeholder="• AWS Certified – 2023&#10;• Google Cloud Associate" style="min-height:60px"></textarea>
+        </div>
+        <div class="f"><label>Languages</label><input v-model="rv.languages" placeholder="English (Fluent), Hindi (Native)"/></div>
+      </div>
+      <button class="btn" @click="downloadResume">⬇ Download Resume PDF</button>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">LIVE PREVIEW</div>
+      <div :class="['resume-preview','tpl-'+rv.template]">
+        <!-- Modern / Creative: colored header bar -->
+        <div v-if="rv.template==='modern'||rv.template==='creative'" class="rp-hdr-bar">
+          <div style="font-size:20px;font-weight:700;color:#fff">{{rv.name||'Your Name'}}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.85);margin-top:2px">{{rv.title||'Job Title'}}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:3px">
+            <span v-if="rv.email">✉ {{rv.email}} &nbsp;</span>
+            <span v-if="rv.phone">📞 {{rv.phone}} &nbsp;</span>
+            <span v-if="rv.location">📍 {{rv.location}}</span>
+          </div>
+        </div>
+        <!-- Classic: centered with double-rule -->
+        <div v-else-if="rv.template==='classic'" class="rp-hdr-text">
+          <div style="font-size:22px;font-weight:700;color:#111;font-family:Georgia,serif">{{rv.name||'Your Name'}}</div>
+          <div style="font-size:13px;color:#555;margin-top:2px">{{rv.title||'Job Title'}}</div>
+          <div style="font-size:11px;color:#888;margin-top:3px">
+            <span v-if="rv.email">{{rv.email}}</span><span v-if="rv.email&&(rv.phone||rv.location)"> &nbsp;|&nbsp; </span>
+            <span v-if="rv.phone">{{rv.phone}}</span><span v-if="rv.phone&&rv.location"> &nbsp;|&nbsp; </span>
+            <span v-if="rv.location">{{rv.location}}</span>
+          </div>
+        </div>
+        <!-- Minimal: uppercase sparse header -->
+        <div v-else class="rp-hdr-text">
+          <div style="font-size:17px;font-weight:300;letter-spacing:4px;text-transform:uppercase;color:#222">{{rv.name||'YOUR NAME'}}</div>
+          <div style="font-size:12px;color:#777;margin-top:2px;letter-spacing:1px">{{rv.title||'Job Title'}}</div>
+          <div style="font-size:11px;color:#aaa;margin-top:3px">
+            <span v-if="rv.email">{{rv.email}}</span><span v-if="rv.email&&(rv.phone||rv.location)">  ·  </span>
+            <span v-if="rv.phone">{{rv.phone}}</span><span v-if="rv.phone&&rv.location">  ·  </span>
+            <span v-if="rv.location">{{rv.location}}</span>
+          </div>
+        </div>
+        <div v-if="rv.summary"><h2>Summary</h2><div style="font-size:11px;color:#333" v-html="fmtDesc(rv.summary)"></div></div>
+        <div v-if="rv.experience.some(e=>e.title)">
+          <h2>Experience</h2>
+          <div v-for="exp in rv.experience.filter(e=>e.title)" :key="exp.title" style="margin-bottom:10px">
+            <div style="font-weight:600">{{exp.title}}<span v-if="exp.company"> @ {{exp.company}}</span></div>
+            <div style="font-size:11px;color:#666">{{exp.duration}}<span v-if="exp.location"> · {{exp.location}}</span></div>
+            <div style="font-size:11px;color:#444;margin-top:2px" v-html="fmtDesc(exp.desc)"></div>
+          </div>
+        </div>
+        <div v-if="rv.education.some(e=>e.degree)">
+          <h2>Education</h2>
+          <div v-for="edu in rv.education.filter(e=>e.degree)" :key="edu.degree" style="margin-bottom:8px">
+            <div style="font-weight:600">{{edu.degree}}</div>
+            <div style="font-size:11px;color:#666">{{edu.school}} · {{edu.year}}<span v-if="edu.grade"> · {{edu.grade}}</span></div>
+          </div>
+        </div>
+        <div v-if="rv.skills"><h2>Skills</h2><span v-for="s in rv.skills.split(',')" :key="s" class="skill-pill">{{s.trim()}}</span></div>
+        <div v-if="rv.certs"><h2>Certifications</h2><div style="font-size:11px;color:#333" v-html="fmtDesc(rv.certs)"></div></div>
+        <div v-if="rv.languages"><h2>Languages</h2><div style="font-size:11px;color:#333">{{rv.languages}}</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS, dlPdf=_dlPdf;
+
+  const resumeTemplates=[
+    {id:'modern', icon:'💎',name:'Modern',   desc:'Purple accents'},
+    {id:'classic',icon:'📜',name:'Classic',  desc:'Traditional'},
+    {id:'minimal',icon:'⬜',name:'Minimal',  desc:'Clean & simple'},
+    {id:'creative',icon:'🎨',name:'Creative',desc:'Bold & colorful'},
+  ];
+
+  const fmtDesc=t=>{
+    if(!t)return'';
+    return t
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .split('\n')
+      .map(l=>l.startsWith('• ')?'<li>'+l.slice(2)+'</li>':'<span>'+l+'</span><br>')
+      .join('')
+      .replace(/(<li>.*<\/li>)+/g,m=>'<ul style="margin:0;padding-left:16px">'+m+'</ul>');
+  };
+  const fmtAt=(pre,suf='')=>{
+    const el=document.activeElement;
+    if(!el||el.tagName!=='TEXTAREA')return;
+    const s=el.selectionStart,e=el.selectionEnd,v=el.value;
+    const sel=v.slice(s,e);
+    const rep=pre+sel+suf;
+    el.setRangeText(rep,s,e,'select');
+    el.dispatchEvent(new Event('input'));
+  };
+
+  const rv=ref({template:'modern',name:'',title:'',email:'',phone:'',location:'',linkedin:'',summary:'',experience:[{title:'',company:'',duration:'',location:'',desc:''}],education:[{degree:'',school:'',year:'',grade:''}],skills:'',certs:'',languages:''});
+  const downloadResume=async()=>{
+    const{PDFDocument,StandardFonts,rgb}=PDFLib;
+    const doc=await PDFDocument.create();
+    const font=await doc.embedFont(StandardFonts.Helvetica);
+    const bold=await doc.embedFont(StandardFonts.HelveticaBold);
+    const pw=595,ph=842,mg=48,rm=pw-48;let y=ph-48;let pg=doc.addPage([pw,ph]);
+    const txt=(text,x,yy,size,f,col)=>pg.drawText(String(text||'').slice(0,100),{x,y:yy,size,font:f||font,color:col||rgb(0.1,0.1,0.1)});
+    const line2=y2=>pg.drawLine({start:{x:mg,y:y2},end:{x:rm,y:y2},thickness:0.5,color:rgb(0.7,0.7,0.7)});
+    const chkPg=(n=20)=>{if(y<mg+n){pg=doc.addPage([pw,ph]);y=ph-mg;}};
+    const wrap=t=>{const ws=String(t||'').split(' ');const ls=[];let cur='';for(const w of ws){const test=cur?cur+' '+w:w;if(font.widthOfTextAtSize(test,10)<=rm-mg){cur=test;}else{if(cur)ls.push(cur);cur=w;}}if(cur)ls.push(cur);return ls.length?ls:[''];};
+    const sec=title=>{chkPg(30);y-=10;txt(title,mg,y,11,bold,rgb(0.48,0.44,1));y-=4;line2(y);y-=14;};
+    pg.drawRectangle({x:0,y:ph-75,width:pw,height:75,color:rgb(0.48,0.44,1)});
+    txt(rv.value.name||'Your Name',mg,ph-38,20,bold,rgb(1,1,1));
+    txt(rv.value.title||'',mg,ph-58,12,font,rgb(0.9,0.9,1));
+    txt([rv.value.email,rv.value.phone,rv.value.location].filter(Boolean).join('  |  '),mg,ph-70,9,font,rgb(0.85,0.85,1));
+    y=ph-90;
+    if(rv.value.summary){sec('SUMMARY');wrap(rv.value.summary).forEach(l=>{chkPg();txt(l,mg,y,10);y-=14;});}
+    if(rv.value.experience.some(e=>e.title)){sec('EXPERIENCE');rv.value.experience.filter(e=>e.title).forEach(e=>{chkPg(40);txt(e.title+(e.company?' @ '+e.company:''),mg,y,11,bold);y-=14;txt((e.duration||'')+(e.location?' · '+e.location:''),mg,y,9,font,rgb(0.5,0.5,0.5));y-=12;if(e.desc){wrap(e.desc).forEach(l=>{chkPg();txt(l,mg+8,y,10);y-=13;});}y-=6;});}
+    if(rv.value.education.some(e=>e.degree)){sec('EDUCATION');rv.value.education.filter(e=>e.degree).forEach(e=>{chkPg(30);txt(e.degree,mg,y,11,bold);y-=13;txt((e.school||'')+(e.year?' · '+e.year:'')+(e.grade?' · '+e.grade:''),mg,y,9,font,rgb(0.5,0.5,0.5));y-=16;});}
+    if(rv.value.skills){sec('SKILLS');wrap(rv.value.skills).forEach(l=>{chkPg();txt(l,mg,y,10);y-=14;});}
+    if(rv.value.certs){sec('CERTIFICATIONS');rv.value.certs.split('\n').forEach(l=>{chkPg();txt('• '+l,mg,y,10);y-=14;});}
+    if(rv.value.languages){sec('LANGUAGES');txt(rv.value.languages,mg,y,10);}
+    const bytes=await doc.save();
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));a.download=(rv.value.name||'resume')+'.pdf';a.click();
+  };
+
+  return {dark,toggleTheme,resumeTemplates,fmtDesc,fmtAt,rv,downloadResume};
+}}).mount('#app');
+</script>
+</body>
+</html>

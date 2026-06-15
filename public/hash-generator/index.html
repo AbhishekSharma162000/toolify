@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hash Generator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔑 Hash Generator</div><div class="tsub">Generate hashes from any text</div>
+  <div class="card">
+    <div class="f"><label>Input Text</label><textarea v-model="hsh.input" placeholder="Enter text to hash..."></textarea></div>
+    <div v-if="hsh.input" style="margin-top:10px">
+      <div v-for="h in hashResults" :key="h.label" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:11px;font-weight:600;color:var(--muted)">{{h.label}}</span><button class="btn-sm" @click="cp(h.val)">Copy</button></div>
+        <div class="code-out" style="max-height:50px;font-size:11px">{{h.val}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const cp=_cp;
+  const hsh=ref({input:''});
+  const sHash=(s,seed=0)=>{let h=seed;for(let i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0;}return(h>>>0).toString(16).padStart(8,'0');};
+  const hashResults=computed(()=>{if(!hsh.value.input)return[];const s=hsh.value.input;const h1=Array.from({length:8},(_,i)=>sHash(s,i*1337)).join('');const h2=Array.from({length:16},(_,i)=>sHash(s+i,i*7919)).join('');return[{label:'MD5-style (32)',val:h1},{label:'SHA1-style (40)',val:h2.slice(0,40)},{label:'SHA256-style (64)',val:(h2+h1+h2).slice(0,64)}];});
+  return {dark,toggleTheme,cp,hsh,hashResults};
+}}).mount('#app');
+</script>
+</body>
+</html>

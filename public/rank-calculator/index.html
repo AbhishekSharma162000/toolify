@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rank Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">🏆 Rank Calculator</div>
+  <div class="tsub">Score &amp; rank predictor for SSC, IBPS, RRB &amp; all competitive govt exams</div>
+  <div class="cl">
+
+    <!-- LEFT: INPUT CARD -->
+    <div class="card">
+      <!-- Exam + Category -->
+      <div class="r2">
+        <div class="f">
+          <label>Exam</label>
+          <select :value="rank.exam" @change="rankSetExam($event.target.value)">
+            <option v-for="(ed,name) in RANK_EXAMS" :key="name" :value="name">{{name}}</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Your Category</label>
+          <select v-model="rank.category">
+            <option value="UR">UR (General)</option>
+            <option value="OBC">OBC</option>
+            <option value="EWS">EWS</option>
+            <option value="SC">SC</option>
+            <option value="ST">ST</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mode Toggle -->
+      <div style="display:flex;gap:6px;margin:10px 0 14px">
+        <button @click="rank.mode='count';rank.res=null"
+          :style="{flex:1,padding:'8px',border:'1px solid var(--border)',borderRadius:'8px',cursor:'pointer',fontWeight:600,fontSize:'12px',background:rank.mode==='count'?'var(--p)':'var(--bg2)',color:rank.mode==='count'?'#fff':'var(--fg)'}">
+          📊 Quick Count
+        </button>
+        <button @click="rank.mode='compare';rank.res=null"
+          :style="{flex:1,padding:'8px',border:'1px solid var(--border)',borderRadius:'8px',cursor:'pointer',fontWeight:600,fontSize:'12px',background:rank.mode==='compare'?'var(--p)':'var(--bg2)',color:rank.mode==='compare'?'#fff':'var(--fg)'}">
+          🔑 Answer Key Match
+        </button>
+      </div>
+
+      <!-- QUICK COUNT MODE -->
+      <template v-if="rank.mode==='count'">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Section-wise Responses</div>
+        <div v-for="(sec,i) in rank.sections" :key="i" style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--fg)">{{sec.name}}
+            <span style="font-weight:400;color:var(--muted)"> — {{sec.q}} Qs · +{{sec.m}} / −{{sec.n}}</span>
+          </div>
+          <div class="r2">
+            <div class="f"><label style="color:var(--g)">✓ Correct</label><input v-model.number="sec.correct" type="number" min="0" :max="sec.q" placeholder="0"/></div>
+            <div class="f"><label style="color:var(--r)">✗ Wrong</label><input v-model.number="sec.wrong" type="number" min="0" :max="sec.q" placeholder="0"/></div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ANSWER KEY COMPARE MODE -->
+      <template v-if="rank.mode==='compare'">
+        <!-- Marking scheme info -->
+        <div style="background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px">
+          <div style="font-weight:600;margin-bottom:4px;color:var(--p)">📋 {{rank.exam}} — Marking Scheme</div>
+          <div v-for="sec in rank.sections" :key="sec.name" style="color:var(--muted);line-height:1.7">
+            {{sec.name}}: {{sec.q}} Qs · +{{sec.m}} correct · −{{sec.n}} wrong
+          </div>
+        </div>
+
+        <!-- Answer Key URL -->
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🔗 Answer Key URL (Optional)</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px">
+          <input v-model="rank.akUrl" placeholder="https://ssc.gov.in/answer-key.pdf or page URL" style="flex:1;font-size:12px"/>
+          <button @click="rankFetchAK" :disabled="rank.akFetching"
+            style="padding:0 14px;background:var(--p);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap">
+            {{rank.akFetching?'Fetching…':'Fetch'}}
+          </button>
+        </div>
+        <div v-if="rank.akMsg" style="font-size:11px;margin-bottom:8px;"
+          :style="{color:rank.akMsg.startsWith('✓')?'var(--g)':'var(--a)'}">{{rank.akMsg}}</div>
+
+        <!-- Answer Key Paste -->
+        <div class="f">
+          <label>📄 Answer Key <span style="font-weight:400;color:var(--muted)">(paste text or auto-filled from URL)</span></label>
+          <textarea v-model="rank.akText" rows="4" placeholder="Paste answer key here.&#10;Supported formats:&#10;  1-A  2-B  3-C  4-D ...&#10;  1. A  2. B  3. C ...&#10;  ABCDDCBA... (plain string)&#10;  A B C D ... (space separated)" style="font-size:12px;font-family:monospace;resize:vertical"></textarea>
+        </div>
+
+        <!-- User Answers -->
+        <div class="f" style="margin-top:8px">
+          <label>✏️ Your Answers <span style="font-weight:400;color:var(--muted)">(same format as key above)</span></label>
+          <textarea v-model="rank.userAns" rows="4" placeholder="Enter your answers:&#10;  1-A  2-C  3-B  4-D ...&#10;  ACBDDCBA... (plain string)&#10;  A C B D ... (space separated)" style="font-size:12px;font-family:monospace;resize:vertical"></textarea>
+        </div>
+
+        <!-- Live parse preview -->
+        <div style="display:flex;gap:8px;font-size:11px;color:var(--muted);margin-top:6px;margin-bottom:4px">
+          <span>Answer Key: <strong :style="{color:parseAK(rank.akText).filter(Boolean).length>=5?'var(--g)':'var(--muted)'}">{{parseAK(rank.akText).filter(Boolean).length}} answers detected</strong></span>
+          <span>·</span>
+          <span>Your Answers: <strong :style="{color:parseAK(rank.userAns).filter(Boolean).length>=5?'var(--p)':'var(--muted)'}">{{parseAK(rank.userAns).filter(Boolean).length}} answers detected</strong></span>
+        </div>
+      </template>
+
+      <button class="btn" @click="calcRank" style="margin-top:10px">
+        {{rank.mode==='compare'?'🔍 Compare & Calculate Rank →':'📊 Calculate Score & Rank →'}}
+      </button>
+    </div>
+
+    <!-- RIGHT: RESULTS CARD -->
+    <div v-if="rank.res" class="card">
+      <!-- Score Hero -->
+      <div style="text-align:center;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px">
+        <div style="font-size:42px;font-weight:900;color:var(--p);line-height:1">{{rank.res.score}}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px">Total Score</div>
+        <div style="display:flex;justify-content:center;gap:18px;margin-top:10px">
+          <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--g)">{{rank.res.totalCorrect}}</div><div style="font-size:10px;color:var(--muted)">Correct</div></div>
+          <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--r)">{{rank.res.totalWrong}}</div><div style="font-size:10px;color:var(--muted)">Wrong</div></div>
+          <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--a)">{{rank.res.totalUnattempted}}</div><div style="font-size:10px;color:var(--muted)">Skipped</div></div>
+          <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--p)">{{rank.res.accuracy}}%</div><div style="font-size:10px;color:var(--muted)">Accuracy</div></div>
+        </div>
+      </div>
+
+      <!-- Section Breakdown -->
+      <div v-if="rank.res.secRes.length>1" style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Section-wise Breakdown</div>
+        <div style="overflow-x:auto;border-radius:7px;border:1px solid var(--border)">
+          <table class="tbl">
+            <tr><th>Section</th><th>Score</th><th style="color:var(--g)">✓</th><th style="color:var(--r)">✗</th><th>Skip</th></tr>
+            <tr v-for="s in rank.res.secRes" :key="s.name">
+              <td style="font-size:11px;max-width:130px;word-break:break-word">{{s.name.split(' & ')[0].split(' and ')[0]}}</td>
+              <td style="font-weight:700;color:var(--p)">{{s.score}}</td>
+              <td style="color:var(--g)">{{s.correct}}</td>
+              <td style="color:var(--r)">{{s.wrong}}</td>
+              <td style="color:var(--muted)">{{s.unattempted}}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Rank & Percentile -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🎯 Rank Prediction</div>
+        <div style="display:flex;justify-content:space-around;text-align:center">
+          <div>
+            <div style="font-size:20px;font-weight:800;color:var(--p)">{{rank.res.rankMin.toLocaleString('en-IN')}} – {{rank.res.rankMax.toLocaleString('en-IN')}}</div>
+            <div style="font-size:11px;color:var(--muted)">Expected All India Rank</div>
+          </div>
+          <div>
+            <div style="font-size:20px;font-weight:800;color:var(--a)">{{rank.res.pctile}}%</div>
+            <div style="font-size:11px;color:var(--muted)">Percentile</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cut-off comparison -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Expected Cut-offs (Historical)</div>
+        <div class="rg">
+          <div v-for="cat in ['UR','OBC','EWS','SC','ST']" :key="cat" class="rb">
+            <div class="rl" :style="{fontWeight:rank.category===cat?700:'normal',color:rank.category===cat?'var(--p)':''}">
+              {{cat}}{{rank.category===cat?' ★':''}}
+            </div>
+            <div class="rv" :style="{color:rank.res.score>=rank.res.cutoff[cat]?'var(--g)':'var(--r)',fontWeight:rank.category===cat?700:'normal'}">
+              {{rank.res.cutoff[cat]}} {{rank.res.score>=rank.res.cutoff[cat]?'✓':'✗'}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selection Chance -->
+      <div style="border-radius:10px;padding:14px;text-align:center;margin-bottom:12px"
+           :style="{background:rank.res.selectionChance==='High'?'rgba(5,150,105,.15)':rank.res.selectionChance==='Moderate'?'rgba(217,119,6,.15)':'rgba(229,62,62,.15)',border:'1px solid '+(rank.res.selectionChance==='High'?'var(--g)':rank.res.selectionChance==='Moderate'?'var(--a)':'var(--r)')}">
+        <div style="font-size:24px">{{rank.res.selectionChance==='High'?'🟢':rank.res.selectionChance==='Moderate'?'🟡':'🔴'}}</div>
+        <div style="font-size:17px;font-weight:700;margin-top:4px"
+             :style="{color:rank.res.selectionChance==='High'?'var(--g)':rank.res.selectionChance==='Moderate'?'var(--a)':'var(--r)'}">
+          {{rank.res.selectionChance}} Selection Chance
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px">
+          Your score <strong>{{rank.res.score}}</strong> vs {{rank.category}} cut-off <strong>{{rank.res.userCutoff}}</strong>
+        </div>
+      </div>
+
+      <!-- Per-Question Comparison (Answer Key mode only) -->
+      <div v-if="rank.res.comparison">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Question-wise Analysis</div>
+          <button @click="rank.showCmp=!rank.showCmp"
+            style="font-size:11px;padding:3px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--muted)">
+            {{rank.showCmp?'Hide':'Show'}} Details
+          </button>
+        </div>
+        <!-- Bubble Grid -->
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
+          <div v-for="q in rank.res.comparison" :key="q.q"
+            style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:default"
+            :style="{background:q.res==='correct'?'var(--g)':q.res==='wrong'?'var(--r)':'var(--bg2)',color:q.res==='skip'?'var(--muted)':'#fff',border:q.res==='skip'?'1px solid var(--border)':'none'}"
+            :title="'Q'+q.q+' | Your: '+q.ua+' | Key: '+q.ak">
+            {{q.q}}
+          </div>
+        </div>
+        <!-- Legend -->
+        <div style="display:flex;gap:12px;font-size:11px;color:var(--muted);margin-bottom:8px">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--g);margin-right:3px"></span>Correct</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--r);margin-right:3px"></span>Wrong</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);margin-right:3px"></span>Skipped</span>
+        </div>
+        <!-- Detailed Table -->
+        <div v-if="rank.showCmp" style="max-height:220px;overflow-y:auto;border-radius:7px;border:1px solid var(--border)">
+          <table class="tbl">
+            <tr><th>Q#</th><th>Your Answer</th><th>Key Answer</th><th>Result</th></tr>
+            <tr v-for="q in rank.res.comparison" :key="q.q">
+              <td>{{q.q}}</td>
+              <td style="font-weight:600">{{q.ua}}</td>
+              <td style="font-weight:600">{{q.ak}}</td>
+              <td :style="{color:q.res==='correct'?'var(--g)':q.res==='wrong'?'var(--r)':'var(--muted)',fontWeight:600}">
+                {{q.res==='correct'?'✓ Correct':q.res==='wrong'?'✗ Wrong':'— Skipped'}}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:10px">
+        * Rank &amp; cut-off predictions use historical data. Actual results may vary.
+      </div>
+    </div>
+
+    <div v-else class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;opacity:.5">
+      <div style="font-size:52px;margin-bottom:12px">🏆</div>
+      <div style="font-size:14px;color:var(--muted)">Fill in your details to see rank prediction</div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const RANK_EXAMS={
+    'SSC CGL':{totalQ:200,sections:[{name:'General Intelligence & Reasoning',q:25,m:2,n:0.5},{name:'General Awareness',q:25,m:2,n:0.5},{name:'Quantitative Aptitude',q:25,m:2,n:0.5},{name:'English Comprehension',q:25,m:2,n:0.5}],totalCandidates:3000000,avgScore:110,stdDev:28,cutoff:{UR:145,OBC:135,EWS:140,SC:122,ST:115},vacancies:7500},
+    'SSC CHSL':{totalQ:100,sections:[{name:'General Intelligence',q:25,m:2,n:0.5},{name:'General Awareness',q:25,m:2,n:0.5},{name:'Quantitative Aptitude',q:25,m:2,n:0.5},{name:'English Language',q:25,m:2,n:0.5}],totalCandidates:2500000,avgScore:115,stdDev:25,cutoff:{UR:140,OBC:130,EWS:135,SC:115,ST:108},vacancies:4500},
+    'SSC MTS':{totalQ:90,sections:[{name:'Numerical & Mathematical Ability',q:20,m:1,n:0},{name:'Reasoning & Problem Solving',q:20,m:1,n:0},{name:'General Awareness',q:25,m:1,n:0},{name:'English & Comprehension',q:25,m:1,n:0}],totalCandidates:4000000,avgScore:55,stdDev:15,cutoff:{UR:70,OBC:63,EWS:67,SC:55,ST:48},vacancies:12000},
+    'IBPS PO':{totalQ:100,sections:[{name:'Reasoning Ability',q:35,m:1,n:0.25},{name:'English Language',q:30,m:1,n:0.25},{name:'Quantitative Aptitude',q:35,m:1,n:0.25}],totalCandidates:1500000,avgScore:40,stdDev:12,cutoff:{UR:47,OBC:43,EWS:45,SC:40,ST:37},vacancies:4000},
+    'IBPS Clerk':{totalQ:100,sections:[{name:'Reasoning Ability',q:35,m:1,n:0.25},{name:'English Language',q:30,m:1,n:0.25},{name:'Numerical Ability',q:35,m:1,n:0.25}],totalCandidates:2000000,avgScore:43,stdDev:12,cutoff:{UR:50,OBC:46,EWS:48,SC:42,ST:38},vacancies:6000},
+    'SBI PO':{totalQ:115,sections:[{name:'Reasoning & Computer Aptitude',q:45,m:1,n:0.25},{name:'Data Analysis & Interpretation',q:35,m:1,n:0.25},{name:'English Language',q:35,m:1,n:0.25}],totalCandidates:1200000,avgScore:45,stdDev:13,cutoff:{UR:52,OBC:48,EWS:50,SC:43,ST:40},vacancies:2000},
+    'SBI Clerk':{totalQ:100,sections:[{name:'General/Financial Awareness',q:50,m:1,n:0.25},{name:'General English',q:40,m:1,n:0.25},{name:'Quantitative Aptitude',q:50,m:1,n:0.25},{name:'Reasoning Ability & Computer Aptitude',q:60,m:1,n:0.25}],totalCandidates:2500000,avgScore:55,stdDev:15,cutoff:{UR:65,OBC:60,EWS:63,SC:54,ST:49},vacancies:8000},
+    'RRB NTPC':{totalQ:100,sections:[{name:'Mathematics',q:30,m:1,n:0.33},{name:'General Intelligence & Reasoning',q:30,m:1,n:0.33},{name:'General Awareness',q:40,m:1,n:0.33}],totalCandidates:10000000,avgScore:55,stdDev:18,cutoff:{UR:75,OBC:68,EWS:72,SC:62,ST:57},vacancies:35000},
+    'RRB Group D':{totalQ:100,sections:[{name:'Mathematics',q:25,m:1,n:0.33},{name:'General Intelligence & Reasoning',q:30,m:1,n:0.33},{name:'General Science',q:25,m:1,n:0.33},{name:'General Awareness & Current Affairs',q:20,m:1,n:0.33}],totalCandidates:12000000,avgScore:50,stdDev:16,cutoff:{UR:70,OBC:63,EWS:67,SC:57,ST:52},vacancies:103769},
+    'CTET':{totalQ:150,sections:[{name:'Child Development & Pedagogy',q:30,m:1,n:0},{name:'Language I',q:30,m:1,n:0},{name:'Language II',q:30,m:1,n:0},{name:'Mathematics',q:30,m:1,n:0},{name:'Environmental Studies',q:30,m:1,n:0}],totalCandidates:3000000,avgScore:90,stdDev:20,cutoff:{UR:90,OBC:82,EWS:82,SC:82,ST:82},vacancies:500000},
+    'UPSC CAPF':{totalQ:125,sections:[{name:'General Ability & Intelligence',q:125,m:2,n:0.67}],totalCandidates:400000,avgScore:150,stdDev:40,cutoff:{UR:185,OBC:172,EWS:180,SC:155,ST:145},vacancies:322},
+  };
+  const rank=ref({exam:'SSC CGL',category:'UR',sections:[],res:null,mode:'count',akUrl:'',akText:'',userAns:'',akFetching:false,akMsg:'',showCmp:false});
+  rank.value.sections=RANK_EXAMS['SSC CGL'].sections.map(s=>({...s,correct:0,wrong:0}));
+  const rankSetExam=name=>{
+    const ed=RANK_EXAMS[name];if(!ed)return;
+    rank.value.exam=name;rank.value.sections=ed.sections.map(s=>({...s,correct:0,wrong:0}));rank.value.res=null;rank.value.akMsg='';
+  };
+  const parseAK=text=>{
+    if(!text)return[];
+    const ans=[null];
+    const numbered=[...text.matchAll(/(?:q(?:ues(?:tion)?)?\s*)?(\d+)\s*[.):\-]\s*([a-dA-D])\b/gi)];
+    if(numbered.length>=5){numbered.forEach(m=>{ans[parseInt(m[1])]=m[2].toUpperCase();});return ans;}
+    const paired=[...text.matchAll(/\b(\d+)\s+([A-D])\b/gi)];
+    if(paired.length>=5){paired.forEach(m=>{ans[parseInt(m[1])]=m[2].toUpperCase();});return ans;}
+    const plain=text.replace(/\s+/g,'').replace(/[^abcdABCD]/gi,'').toUpperCase();
+    if(plain.length>=5){for(let i=0;i<plain.length;i++)ans[i+1]=plain[i];return ans;}
+    const spaced=text.trim().split(/\s+/).filter(x=>/^[ABCD]$/i.test(x));
+    if(spaced.length>=5){spaced.forEach((a,i)=>{ans[i+1]=a.toUpperCase();});return ans;}
+    return ans;
+  };
+  const rankFetchAK=async()=>{
+    if(!rank.value.akUrl.trim()){rank.value.akMsg='⚠ Enter a URL first';return;}
+    rank.value.akFetching=true;rank.value.akMsg='';
+    try{
+      const res=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(rank.value.akUrl.trim()));
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const html=await res.text();
+      const stripped=html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'').replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ');
+      rank.value.akText=stripped.slice(0,30000);
+      const parsed=parseAK(rank.value.akText);
+      const cnt=parsed.filter(Boolean).length;
+      if(cnt<5)throw new Error('Auto-parse found only '+cnt+' answers. Please paste the answer key text manually below.');
+      rank.value.akMsg='✓ Fetched & parsed '+cnt+' answers from URL';
+    }catch(e){rank.value.akMsg='⚠ '+( e.message||'Fetch failed. Paste the answer key text manually.');}
+    rank.value.akFetching=false;
+  };
+  const normalCDF=z=>{const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p2=0.3275911;const sign=z<0?-1:1;const az=Math.abs(z);const t=1/(1+p2*az);const y=1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-az*az);return 0.5*(1+sign*y);};
+  const calcRank=()=>{
+    const ed=RANK_EXAMS[rank.value.exam];if(!ed)return;
+    let comparison=null;
+    if(rank.value.mode==='compare'){
+      const ak=parseAK(rank.value.akText);const ua=parseAK(rank.value.userAns);
+      const akCnt=ak.filter(Boolean).length,uaCnt=ua.filter(Boolean).length;
+      if(akCnt<5){rank.value.akMsg='⚠ Answer key not parsed. Add URL or paste key below.';return;}
+      if(uaCnt<5){rank.value.akMsg='⚠ Enter your answers in the "Your Answers" field.';return;}
+      comparison=[];let qOff=1;
+      rank.value.sections=rank.value.sections.map(sec=>{
+        let correct=0,wrong=0;
+        for(let q=qOff;q<qOff+sec.q;q++){
+          const akA=ak[q]||null,uaA=ua[q]||null;
+          let res2='skip';
+          if(uaA){if(akA&&uaA===akA){correct++;res2='correct';}else if(akA){wrong++;res2='wrong';}else res2='undef';}
+          comparison.push({q,ak:akA||'?',ua:uaA||'–',res:res2});
+        }
+        qOff+=sec.q;return{...sec,correct,wrong};
+      });
+    }
+    let totalCorrect=0,totalWrong=0,totalScore=0;
+    const secRes=rank.value.sections.map(s=>{
+      const c=Math.max(0,s.correct||0),w=Math.max(0,s.wrong||0);
+      const u=Math.max(0,s.q-c-w);const sc=+(c*s.m-w*s.n).toFixed(2);
+      totalCorrect+=c;totalWrong+=w;totalScore+=sc;
+      return{name:s.name,q:s.q,correct:c,wrong:w,unattempted:u,score:sc};
+    });
+    const totalQ=rank.value.sections.reduce((s,x)=>s+x.q,0);
+    const totalUnattempted=totalQ-totalCorrect-totalWrong;
+    const accuracy=totalCorrect+totalWrong>0?Math.round(totalCorrect/(totalCorrect+totalWrong)*100):0;
+    totalScore=+totalScore.toFixed(2);
+    const z=(totalScore-ed.avgScore)/ed.stdDev;
+    const pctile=Math.min(99.9,Math.max(0.1,+(normalCDF(z)*100).toFixed(1)));
+    const above=1-pctile/100;
+    const rankMin=Math.max(1,Math.round(above*ed.totalCandidates*0.85));
+    const rankMax=Math.max(rankMin+100,Math.round(above*ed.totalCandidates*1.15));
+    const cat=rank.value.category;
+    const userCutoff=ed.cutoff[cat]||ed.cutoff.UR;
+    let selectionChance='Low';
+    if(totalScore>=userCutoff*1.08)selectionChance='High';
+    else if(totalScore>=userCutoff*0.93)selectionChance='Moderate';
+    rank.value.res={score:totalScore,totalCorrect,totalWrong,totalUnattempted,totalQ,accuracy,secRes,pctile,rankMin,rankMax,cutoff:ed.cutoff,userCutoff,selectionChance,vacancies:ed.vacancies,comparison};
+  };
+
+  return {dark,toggleTheme,RANK_EXAMS,rank,rankSetExam,parseAK,rankFetchAK,calcRank};
+}}).mount('#app');
+</script>
+</body>
+</html>

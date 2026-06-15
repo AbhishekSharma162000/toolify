@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PDF Watermark — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">💧 PDF Watermark</div><div class="tsub">Stamp text watermark on every page — runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>wmLoad(e.dataTransfer.files[0])" @click="$refs.wmInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">💧</div>
+      <div v-if="!wm.file" style="font-size:14px">Drop PDF or <span style="color:var(--p)">browse</span></div>
+      <div v-else style="font-size:13px;color:var(--g)">✓ {{wm.file.name}}</div>
+      <input ref="wmInp" type="file" accept=".pdf" hidden @change="e=>wmLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="wm.file" style="margin-top:14px">
+      <div class="f"><label>Watermark Text</label><input v-model="wm.text" placeholder="CONFIDENTIAL"/></div>
+      <div class="r2">
+        <div class="f"><label>Opacity (0.05–1)</label><input v-model.number="wm.opacity" type="number" min="0.05" max="1" step="0.05"/></div>
+        <div class="f"><label>Font Size</label><input v-model.number="wm.size" type="number" min="12" max="120"/></div>
+      </div>
+      <div class="r2">
+        <div class="f"><label>Angle (°)</label><input v-model.number="wm.angle" type="number" min="-180" max="180"/></div>
+        <div class="f"><label>Color</label><input v-model="wm.color" type="color" style="height:36px;padding:2px 4px;width:100%"/></div>
+      </div>
+      <button class="btn" :disabled="wm.loading||!wm.text" @click="addWatermark">{{wm.loading?'Processing...':'💧 Add Watermark →'}}</button>
+    </div>
+    <div v-if="wm.err" class="err">{{wm.err}}</div>
+    <div v-if="wm.done" class="ok">✓ PDF with watermark downloaded!</div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const dlPdf=_dlPdf, hexToRgb=_hexToRgb;
+
+  // PDF Watermark
+  const wm=ref({file:null,text:'CONFIDENTIAL',opacity:0.25,size:48,angle:45,color:'#cccccc',loading:false,err:'',done:false});
+  const wmLoad=file=>{if(!file||file.type!=='application/pdf')return;wm.value.file=file;wm.value.done=false;wm.value.err='';};
+  const addWatermark=async()=>{wm.value.loading=true;wm.value.err='';wm.value.done=false;try{const{PDFDocument,StandardFonts,rgb,degrees}=PDFLib;const doc=await PDFDocument.load(await wm.value.file.arrayBuffer());const font=await doc.embedFont(StandardFonts.HelveticaBold);const c=hexToRgb(wm.value.color);for(const page of doc.getPages()){const{width,height}=page.getSize();const tw=font.widthOfTextAtSize(wm.value.text,wm.value.size);page.drawText(wm.value.text,{x:width/2-tw/2,y:height/2-wm.value.size/2,size:wm.value.size,font,color:rgb(c.r,c.g,c.b),opacity:wm.value.opacity,rotate:degrees(wm.value.angle)});}dlPdf(await doc.save(),'watermarked.pdf');wm.value.done=true;}catch(e){wm.value.err='Error: '+e.message;}wm.value.loading=false;};
+
+  return {dark,toggleTheme, wm,wmLoad,addWatermark};
+}}).mount('#app');
+</script>
+</body>
+</html>

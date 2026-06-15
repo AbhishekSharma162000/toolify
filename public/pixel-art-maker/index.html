@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pixel Art Maker — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🎮 Pixel Art Maker</div><div class="tsub">Pixelate any image for a retro look — runs in your browser</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>pixelLoad(e.dataTransfer.files[0])" @click="$refs.pixelInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🎮</div>
+      <div style="font-size:14px">Drop image or <span style="color:var(--p)">browse</span></div>
+      <input ref="pixelInp" type="file" accept="image/*" hidden @change="e=>pixelLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="ipixel.src" style="margin-top:14px">
+      <div class="f"><label>Pixel Block Size: {{ipixel.size}}px</label><input v-model.number="ipixel.size" type="range" min="2" max="64" @input="pixelProcess"/></div>
+      <canvas id="pixel-canvas" style="width:100%;border-radius:7px;border:1px solid var(--border);margin-bottom:10px;display:block"></canvas>
+      <button class="btn" @click="pixelDownload">⬇ Download Pixel Art</button>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmtB=_fmtB, loadImgSrc=_loadImgSrc, dlCanvas=_dlCanvas, extFromFmt=_extFromFmt;
+
+  const ipixel=ref({src:null,size:16});
+  const pixelLoad=file=>{if(!file)return;const r=new FileReader();r.onload=e=>{ipixel.value={src:e.target.result,size:16};Vue.nextTick(pixelProcess);};r.readAsDataURL(file);};
+  const pixelProcess=async()=>{const v=ipixel.value;if(!v.src)return;const canvas=document.getElementById('pixel-canvas');if(!canvas)return;const img=await loadImgSrc(v.src);const w=img.width,h=img.height,s=v.size;canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;const tmp=document.createElement('canvas');tmp.width=Math.ceil(w/s);tmp.height=Math.ceil(h/s);tmp.getContext('2d').drawImage(img,0,0,tmp.width,tmp.height);ctx.drawImage(tmp,0,0,tmp.width,tmp.height,0,0,w,h);};
+  const pixelDownload=()=>{const c=document.getElementById('pixel-canvas');if(c)dlCanvas(c,'image/png',100,'pixel-art');};
+
+  return {dark,toggleTheme, ipixel,pixelLoad,pixelProcess,pixelDownload};
+}}).mount('#app');
+</script>
+</body>
+</html>

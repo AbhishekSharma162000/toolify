@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Word Editor — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">📝 Word Editor</div><div class="tsub">Open .docx files, edit rich text, export back to Word or PDF</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div v-if="we.html===null" class="card" style="max-width:560px">
+    <div class="drop" @dragover.prevent @drop.prevent="e=>weLoad(e.dataTransfer.files[0])" @click="$refs.weInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">📝</div>
+      <div style="font-size:14px">Drop .docx or <span style="color:var(--p)">browse</span></div>
+      <input ref="weInp" type="file" accept=".docx" hidden @change="e=>weLoad(e.target.files[0])"/>
+    </div>
+    <div v-if="we.loading" style="text-align:center;color:var(--muted);margin-top:12px;font-size:13px">Loading…</div>
+    <div v-if="we.err" class="err">{{we.err}}</div>
+    <button class="btn-o" @click="weNew" style="margin-top:14px;width:auto;padding:8px 20px">+ New blank document</button>
+  </div>
+  <div v-if="we.html!==null" style="max-width:900px;margin:0 auto">
+    <!-- Toolbar -->
+    <div style="display:flex;gap:5px;align-items:center;margin-bottom:10px;flex-wrap:wrap;background:var(--card);padding:8px 12px;border-radius:10px;border:1px solid var(--border)">
+      <button class="btn-sm" style="width:auto;font-weight:700" @mousedown.prevent="weExec('bold')" title="Bold">B</button>
+      <button class="btn-sm" style="width:auto;font-style:italic" @mousedown.prevent="weExec('italic')" title="Italic">I</button>
+      <button class="btn-sm" style="width:auto;text-decoration:underline" @mousedown.prevent="weExec('underline')" title="Underline">U</button>
+      <button class="btn-sm" style="width:auto;text-decoration:line-through" @mousedown.prevent="weExec('strikeThrough')" title="Strike">S</button>
+      <div style="width:1px;height:20px;background:var(--border)"></div>
+      <select @mousedown.stop @change="e=>{weExec('formatBlock',e.target.value);e.target.value=''}" style="font-size:12px;padding:4px 6px;border-radius:6px;background:var(--bg2);border:1px solid var(--border);color:var(--fg)">
+        <option value="">Style…</option>
+        <option value="p">Paragraph</option>
+        <option value="h1">Heading 1</option>
+        <option value="h2">Heading 2</option>
+        <option value="h3">Heading 3</option>
+      </select>
+      <div style="width:1px;height:20px;background:var(--border)"></div>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('justifyLeft')" title="Align left">⬅</button>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('justifyCenter')" title="Center">≡</button>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('justifyRight')" title="Align right">➡</button>
+      <div style="width:1px;height:20px;background:var(--border)"></div>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('insertUnorderedList')" title="Bullet list">• List</button>
+      <button class="btn-sm" style="width:auto" @mousedown.prevent="weExec('insertOrderedList')" title="Numbered list">1. List</button>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn-o" @click="we.html=null" style="width:auto;padding:6px 12px;font-size:12px">Open…</button>
+        <button class="btn-sm" @click="weExportDocx" style="width:auto">⬇ .docx</button>
+        <button class="btn-sm" @click="weExportPdf" style="width:auto">⬇ PDF</button>
+      </div>
+    </div>
+    <!-- Document area (A4-like white page) -->
+    <div id="word-editor" contenteditable="true"
+      @input="we.dirty=true"
+      style="background:#fff;color:#1a1a1a;padding:52px 72px;min-height:600px;border-radius:10px;border:1px solid var(--border);font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.9;outline:none;box-shadow:0 4px 24px rgba(0,0,0,.12)">
+    </div>
+    <div style="margin-top:8px;display:flex;justify-content:space-between">
+      <span style="font-size:11px;color:var(--muted)">{{we.dirty?'● Unsaved changes':'Saved'}}</span>
+      <span style="font-size:11px;color:var(--muted)">Select text then click a toolbar button to format</span>
+    </div>
+    <div v-if="we.done" class="ok" style="margin-top:8px">✓ Downloaded!</div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const dlPdf=_dlPdf, hexToRgb=_hexToRgb;
+  const escXml=_escXml;
+
+  const buildZip=files2=>{const enc=new TextEncoder();let offset=0;const parts=[],cd=[];const u32=n=>{const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,n,true);return b;};const u16=n=>{const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,n,true);return b;};const crc32=data=>{let c=0xFFFFFFFF;const t=[];for(let i=0;i<256;i++){let x=i;for(let j=0;j<8;j++)x=x&1?(0xEDB88320^(x>>>1)):(x>>>1);t[i]=x;}for(let i=0;i<data.length;i++)c=t[(c^data[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;};files2.forEach(({name,data})=>{const nb=enc.encode(name),crc=crc32(data);const lh2=new Uint8Array([0x50,0x4B,0x03,0x04,20,0,0,0,0,0,0,0,0,0,...u32(crc),...u32(data.length),...u32(data.length),...u16(nb.length),0,0,...nb]);cd.push({nb,crc,size:data.length,offset});parts.push(lh2,data);offset+=lh2.length+data.length;});const cdStart=offset;cd.forEach(({nb,crc,size,offset:off})=>{const r=new Uint8Array([0x50,0x4B,0x01,0x02,20,0,20,0,0,0,0,0,0,0,0,0,...u32(crc),...u32(size),...u32(size),...u16(nb.length),0,0,0,0,0,0,0,0,0,0,...u32(off),...nb]);parts.push(r);offset+=r.length;});const eocd=new Uint8Array([0x50,0x4B,0x05,0x06,0,0,0,0,...u16(cd.length),...u16(cd.length),...u32(offset-cdStart),...u32(cdStart),0,0]);parts.push(eocd);const total=parts.reduce((s,p)=>s+p.length,0);const out=new Uint8Array(total);let pos=0;parts.forEach(p=>{out.set(p,pos);pos+=p.length;});return out;};
+
+  // ── WORD EDITOR ──
+  const we=ref({html:null,file:null,loading:false,err:'',done:false,dirty:false});
+  const weLoad=async file=>{if(!file)return;we.value.loading=true;we.value.err='';we.value.done=false;try{const buf=await file.arrayBuffer();const result=await mammoth.convertToHtml({arrayBuffer:buf});we.value.html=result.value;we.value.file=file;we.value.dirty=false;await Vue.nextTick();const el=document.getElementById('word-editor');if(el)el.innerHTML=result.value;}catch(e){we.value.err='Error: '+e.message;}we.value.loading=false;};
+  const weNew=async()=>{we.value.html='';we.value.file=null;we.value.dirty=false;await Vue.nextTick();const el=document.getElementById('word-editor');if(el){el.innerHTML='<p>Start typing your document here…</p>';el.focus();}};
+  const weExec=(cmd,val)=>{document.execCommand(cmd,false,val||null);document.getElementById('word-editor')?.focus();};
+  const weExportDocx=()=>{const el=document.getElementById('word-editor');if(!el)return;const text=el.innerText||'';const enc=new TextEncoder();const docxml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${text.split('\n').map(l=>`<w:p><w:r><w:t xml:space="preserve">${escXml(l)}</w:t></w:r></w:p>`).join('')}</w:body></w:document>`;const relsxml=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;const wRels=`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;const ct=`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;const zipBytes=buildZip([{name:'[Content_Types].xml',data:enc.encode(ct)},{name:'_rels/.rels',data:enc.encode(relsxml)},{name:'word/document.xml',data:enc.encode(docxml)},{name:'word/_rels/document.xml.rels',data:enc.encode(wRels)}]);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}));a.download=(we.value.file?.name?.replace(/\.docx$/i,'')||'document')+'.docx';a.click();we.value.done=true;we.value.dirty=false;};
+  const weExportPdf=async()=>{try{const el=document.getElementById('word-editor');if(!el)return;const text=el.innerText||'';const{PDFDocument,StandardFonts,rgb}=PDFLib;const doc=await PDFDocument.create();const font=await doc.embedFont(StandardFonts.Helvetica);const bold2=await doc.embedFont(StandardFonts.HelveticaBold);const pw2=595,ph=842,mg=60,lh=18,fs=12,maxW=pw2-mg*2;const wrap=txt=>{if(!txt.trim())return[''];const ws=txt.split(' ');const ls=[];let cur='';for(const w of ws){const t=cur?cur+' '+w:w;if(font.widthOfTextAtSize(t,fs)<=maxW)cur=t;else{if(cur)ls.push(cur);cur=w;}}if(cur)ls.push(cur);return ls;};let pg=doc.addPage([pw2,ph]);let y=ph-mg;for(const raw of text.split('\n')){const lines=wrap(raw);for(const line of lines){if(y<mg+lh){pg=doc.addPage([pw2,ph]);y=ph-mg;}if(line.trim())pg.drawText(line,{x:mg,y,size:fs,font,color:rgb(0.1,0.1,0.1)});y-=line.trim()?lh:10;}}dlPdf(await doc.save(),(we.value.file?.name?.replace(/\.docx$/i,'')||'document')+'.pdf');we.value.done=true;}catch(e){we.value.err='Error: '+e.message;}};
+
+  return {dark,toggleTheme, we,weLoad,weNew,weExec,weExportDocx,weExportPdf};
+}}).mount('#app');
+</script>
+</body>
+</html>

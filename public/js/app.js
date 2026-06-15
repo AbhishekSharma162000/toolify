@@ -1,3 +1,4 @@
+function _showLoader(){const l=document.getElementById('page-loader');if(l){l.style.display='flex';l.style.opacity='1';l.classList.remove('done');}}
 const {createApp,ref,computed}=Vue;
 const _vapp=createApp({setup(){
 
@@ -124,6 +125,7 @@ const _vapp=createApp({setup(){
     {id:'pagebuilder', icon:'🚀',name:'Landing Page Builder',  desc:'Drag-and-drop sections, templates, download HTML',color:'rgba(124,111,255,.2)',cat:'Career & Templates',hot:true},
     {id:'ytdl',        icon:'📥',name:'YouTube Downloader',    desc:'Download videos, audio & playlists as MP4/MP3',  color:'rgba(255,68,68,.18)',  cat:'Media Tools',         hot:true,external:'/youtube-downloader/'},
   ];
+  if(window.INITIAL_PAGE&&window.INITIAL_PAGE!=='home'){const _t=allTools.find(t=>t.id===window.INITIAL_PAGE);if(_t)document.title=_t.name+' — Free Online Tool | Toolzyo';}
 
   const filteredTools=computed(()=>allTools.filter(t=>
     (activeCat.value==='All'||t.cat===activeCat.value)&&
@@ -135,8 +137,8 @@ const _vapp=createApp({setup(){
     filteredTools.value.forEach(t=>{if(!m[t.cat])m[t.cat]=[];m[t.cat].push(t);});
     return sectionOrder.filter(c=>m[c]).map(c=>({label:c,tools:m[c]}));
   });
-  const goHome=()=>{page.value='home';history.pushState({},'','/');window.scrollTo(0,0);};
-  const open=id=>{const tool=allTools.find(t=>t.id===id);if(tool?.external){window.open(tool.external,'_blank');return;}page.value=id;history.pushState({id},'',toolUrl(id));window.scrollTo(0,0);};
+  const goHome=()=>{_showLoader();location.href='/';};
+  const open=id=>{const tool=allTools.find(t=>t.id===id);if(tool?.external){window.open(tool.external,'_blank');return;}_showLoader();location.href=toolUrl(id);};
   window.addEventListener('popstate',()=>{page.value=window._URL_TO_ID[location.pathname]||'home';});
   window.addEventListener('resize',()=>{try{if(pdfed.value.loaded)pdfedUpdateScale();}catch(e){}});
   const pdfTitle=computed(()=>({merge:'🔗 Merge PDF',img2pdf:'🖼️ Image to PDF',split:'✂️ Split PDF',word2pdf:'📄 Word to PDF',pdf2word:'📝 PDF to Word'}[page.value]||''));
@@ -833,3 +835,19 @@ _vapp.directive('init-text',{
   updated(el,b){if(b.value!==b.oldValue)el.innerText=b.value;}
 });
 _vapp.mount('#app');
+
+// Hide loader after Vue finishes first render
+const _loader=document.getElementById('page-loader');
+if(_loader){requestAnimationFrame(()=>requestAnimationFrame(()=>{_loader.classList.add('done');setTimeout(()=>{_loader.style.display='none';},320);}));}
+
+// If browser restores page from bfcache (back/forward), ensure loader is hidden
+window.addEventListener('pageshow',e=>{if(e.persisted){const l=document.getElementById('page-loader');if(l)l.style.display='none';}});
+
+// Show loader on any same-origin link click (card clicks, back links, etc.)
+document.addEventListener('click',e=>{
+  const a=e.target.closest('a');
+  if(!a||a.target==='_blank'||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  const href=a.getAttribute('href');
+  if(!href||href==='#'||href.startsWith('javascript'))return;
+  try{const u=new URL(a.href,location.href);if(u.origin===location.origin&&u.pathname!==location.pathname)_showLoader();}catch(err){}
+},true);

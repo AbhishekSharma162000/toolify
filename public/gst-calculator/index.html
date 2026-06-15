@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GST Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">🧾 GST Calculator</div><div class="tsub">Add or remove GST instantly</div>
+  <div class="card" style="max-width:480px">
+    <div class="tabs"><button :class="['tab',gst.mode==='add'&&'active']" @click="gst.mode='add'">Add GST</button><button :class="['tab',gst.mode==='remove'&&'active']" @click="gst.mode='remove'">Remove GST</button></div>
+    <div class="f"><label>Amount (₹)</label><input v-model.number="gst.amount" type="number" placeholder="1000"/></div>
+    <div class="f"><label>Rate</label><select v-model.number="gst.rate"><option value="5">5%</option><option value="12">12%</option><option value="18">18%</option><option value="28">28%</option></select></div>
+    <div v-if="gst.amount" class="rg" style="margin-top:12px">
+      <div class="rb"><div class="rl">Base</div><div class="rv">₹{{fmt(gstBase)}}</div></div>
+      <div class="rb"><div class="rl">GST</div><div class="rv ac">₹{{fmt(gstAmt)}}</div></div>
+      <div class="rb" style="grid-column:1/-1"><div class="rl">Total</div><div class="rv gr" style="font-size:22px">₹{{fmt(gstTotal)}}</div></div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const gst=ref({amount:1000,rate:18,mode:'add'});
+  const gstBase=computed(()=>gst.value.mode==='add'?gst.value.amount:+(gst.value.amount/(1+gst.value.rate/100)).toFixed(2));
+  const gstAmt=computed(()=>+(gstBase.value*gst.value.rate/100).toFixed(2));
+  const gstTotal=computed(()=>+(gstBase.value+gstAmt.value).toFixed(2));
+
+  return {dark,toggleTheme,fmt,fmtS,gst,gstBase,gstAmt,gstTotal};
+}}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Date Difference Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">📅 Date Difference</div><div class="tsub">Days, weeks, months between two dates</div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+  <div class="card" style="max-width:460px">
+    <div class="r2"><div class="f"><label>Start Date</label><input v-model="dd.from" type="date"/></div><div class="f"><label>End Date</label><input v-model="dd.to" type="date"/></div></div>
+    <div v-if="dd.from&&dd.to" class="rg" style="margin-top:4px">
+      <div class="rb"><div class="rl">Days</div><div class="rv ac">{{fmt(ddRes.days)}}</div></div>
+      <div class="rb"><div class="rl">Weeks</div><div class="rv gr">{{ddRes.weeks}}</div></div>
+      <div class="rb"><div class="rl">Months</div><div class="rv am">{{ddRes.months}}</div></div>
+      <div class="rb"><div class="rl">Working Days</div><div class="rv">{{ddRes.workdays}}</div></div>
+    </div>
+  </div>
+  <div class="ad"><script async="async" data-cfasync="false" src="https://pl28946032.effectivecpmnetwork.com/09f214e43608f0ce8be8f9c566e059d1/invoke.js"></script>
+<div id="container-09f214e43608f0ce8be8f9c566e059d1"></div></div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+  const dd=ref({from:'',to:''});
+  const ddRes=computed(()=>{if(!dd.value.from||!dd.value.to)return{days:0,weeks:0,months:0,workdays:0};const a=new Date(dd.value.from),b=new Date(dd.value.to);const days=Math.abs(Math.floor((b-a)/86400000));let wd=0;const s=new Date(Math.min(a,b)),e=new Date(Math.max(a,b));for(let i=new Date(s);i<=e;i.setDate(i.getDate()+1)){const d=i.getDay();if(d!==0&&d!==6)wd++;}return{days,weeks:(days/7).toFixed(1),months:(days/30.44).toFixed(1),workdays:wd};});
+  return {dark,toggleTheme,fmt,fmtS,dd,ddRes};
+}}).mount('#app');
+</script>
+</body>
+</html>

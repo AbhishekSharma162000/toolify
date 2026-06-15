@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Image to PDF — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🖼️ Image to PDF</div>
+  <div class="tsub">Runs entirely in your browser — nothing uploaded</div>
+  <div class="card" style="max-width:560px">
+    <div class="drop" :class="img.over&&'over'" @dragover.prevent="img.over=true" @dragleave="img.over=false" @drop.prevent="e=>{img.over=false;addImgs(e.dataTransfer.files)}" @click="$refs.iInp.click()">
+      <div style="font-size:34px;margin-bottom:8px">🖼️</div><div style="font-size:14px">Drop images or <span style="color:var(--p)">browse</span></div>
+      <input ref="iInp" type="file" accept="image/jpeg,image/png" multiple hidden @change="e=>addImgs(e.target.files)"/>
+    </div>
+    <div v-if="img.files.length" style="margin:12px 0"><div v-for="(f,i) in img.files" :key="i" class="fi"><span>🖼️</span><span class="fn">{{f.name}}</span><span style="font-size:10px;color:var(--muted)">{{(f.size/1024).toFixed(0)}}KB</span><button class="xb" @click="img.files.splice(i,1)">✕</button></div></div>
+    <button v-if="img.files.length" class="btn" :disabled="img.loading" @click="imgToPdf">{{img.loading?'Converting...':'Convert to PDF →'}}</button>
+    <div v-if="img.err" class="err">{{img.err}}</div>
+    <div v-if="img.done" class="ok">✓ Downloaded!</div>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const dlPdf=_dlPdf, fmtB=_fmtB;
+
+  const img=ref({files:[],loading:false,err:'',done:false,over:false});
+  const addImgs=fl=>{for(const f of fl)if(f.type.startsWith('image/'))img.value.files.push(f);};
+  const imgToPdf=async()=>{const im=img.value;im.loading=true;im.err='';im.done=false;try{const{PDFDocument}=PDFLib,doc=await PDFDocument.create();for(const f of im.files){const buf=await f.arrayBuffer(),ext=f.name.split('.').pop().toLowerCase(),i2=ext==='png'?await doc.embedPng(buf):await doc.embedJpg(buf);doc.addPage([i2.width,i2.height]).drawImage(i2,{x:0,y:0,width:i2.width,height:i2.height});}dlPdf(await doc.save(),'images.pdf');im.done=true;}catch(e){im.err='Error: '+e.message;}im.loading=false;};
+
+  return {dark,toggleTheme,img,addImgs,imgToPdf};
+}}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compound Interest Calculator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+
+<div class="tp">
+  <div class="ttl">💰 Compound Interest</div><div class="tsub">How money grows over time</div>
+  <div class="cl">
+    <div class="card">
+      <div class="f"><label>Principal (₹)</label><input v-model.number="ci.p" type="number" placeholder="100000"/></div>
+      <div class="f"><label>Annual Rate (%)</label><input v-model.number="ci.r" type="number" step="0.1" placeholder="10"/></div>
+      <div class="f"><label>Time (years)</label><input v-model.number="ci.t" type="number" placeholder="5"/></div>
+      <div class="f"><label>Compounding</label><select v-model.number="ci.n"><option value="1">Annually</option><option value="2">Half-yearly</option><option value="4">Quarterly</option><option value="12">Monthly</option><option value="365">Daily</option></select></div>
+      <button class="btn" @click="calcCi">Calculate</button>
+    </div>
+    <div v-if="ci.res" class="card">
+      <div class="big-res ac">₹{{fmt(ci.res.amount)}}</div>
+      <div style="text-align:center;color:var(--muted);font-size:12px;margin-bottom:12px">Final Amount</div>
+      <div class="rg">
+        <div class="rb"><div class="rl">Principal</div><div class="rv">₹{{fmt(ci.p)}}</div></div>
+        <div class="rb"><div class="rl">Interest</div><div class="rv gr">₹{{fmt(ci.res.interest)}}</div></div>
+        <div class="rb"><div class="rl">Simple Interest</div><div class="rv am">₹{{fmt(ci.res.si)}}</div></div>
+        <div class="rb"><div class="rl">Extra via CI</div><div class="rv ac">₹{{fmt(ci.res.extra)}}</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const fmt=_fmt, fmtS=_fmtS;
+
+  const ci=ref({p:100000,r:10,t:5,n:4,res:null});
+  const calcCi=()=>{
+    const amount=Math.round(ci.value.p*Math.pow(1+ci.value.r/100/ci.value.n,ci.value.n*ci.value.t));
+    const interest=amount-ci.value.p, si=Math.round(ci.value.p*ci.value.r/100*ci.value.t);
+    ci.value.res={amount,interest,si,extra:interest-si};
+  };
+
+  return {dark,toggleTheme,fmt,fmtS,ci,calcCi};
+}}).mount('#app');
+</script>
+</body>
+</html>

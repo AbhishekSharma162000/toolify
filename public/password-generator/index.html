@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Password Generator — Free Online Tool | Toolzyo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+#page-loader{position:fixed;inset:0;z-index:9999;background:#0f0f12;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}
+#page-loader.done{opacity:0;pointer-events:none}
+body.light #page-loader{background:#f5f5f8}
+.pl-ring{width:46px;height:46px;border:3px solid rgba(124,111,255,.18);border-top-color:#7c6fff;border-radius:50%;animation:pl-s .7s linear infinite}
+@keyframes pl-s{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="/css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="/js/tool-base.js"></script>
+</head>
+<body class="dark">
+<div id="page-loader"><div class="pl-ring"></div></div>
+<div id="app">
+<nav class="navbar">
+  <a class="logo" href="/">⚡ Toolzyo</a>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="/" style="font-size:13px;color:var(--sub);text-decoration:none;border:1px solid rgba(255,255,255,.12);padding:5px 14px;border-radius:8px">← Back to Tools</a>
+    <button class="theme-btn" @click="toggleTheme">{{dark?'☀️ Light':'🌙 Dark'}}</button>
+  </div>
+</nav>
+<div class="tp">
+  <div class="ttl">🔐 Password Generator</div><div class="tsub">Strong random passwords</div>
+  <div class="card" style="max-width:500px">
+    <div class="pw-box"><span style="flex:1;font-size:14px">{{pw.val||'Click Generate'}}</span><button class="cpbtn" @click="copyPw">{{pw.copied?'✓':'Copy'}}</button></div>
+    <div :style="{background:pwStr.color,height:'4px',borderRadius:'3px',marginBottom:'7px'}"></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Strength: <span :style="{color:pwStr.color,fontWeight:600}">{{pwStr.label}}</span></div>
+    <div class="f"><label>Length: {{pw.len}}</label><input v-model.number="pw.len" type="range" min="6" max="64"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;font-size:13px">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" v-model="pw.upper"/> A-Z</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" v-model="pw.lower"/> a-z</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" v-model="pw.nums"/> 0-9</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" v-model="pw.sym"/> !@#$</label>
+    </div>
+    <button class="btn" @click="genPw">🔄 Generate</button>
+  </div>
+</div>
+</div>
+<script>
+const {createApp,ref,computed} = Vue;
+createApp({setup(){
+  const {dark,toggleTheme} = _toolSetup();
+  const cp=_cp;
+  const pw=ref({val:'',len:16,upper:true,lower:true,nums:true,sym:true,copied:false});
+  const genPw=()=>{let c='';if(pw.value.upper)c+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';if(pw.value.lower)c+='abcdefghijklmnopqrstuvwxyz';if(pw.value.nums)c+='0123456789';if(pw.value.sym)c+='!@#$%^&*()_+-=[]{}|;:,.<>?';if(!c)c='abcdefghijklmnopqrstuvwxyz';pw.value.val=Array.from({length:pw.value.len},()=>c[Math.floor(Math.random()*c.length)]).join('');};
+  const pwStr=computed(()=>{const v=pw.value.val;if(!v)return{color:'#2a2a38',label:'—'};const s=[/[a-z]/,/[A-Z]/,/[0-9]/,/[^a-zA-Z0-9]/].filter(r=>r.test(v)).length+(v.length>=12?1:0)+(v.length>=20?1:0);return s<=2?{color:'#ef4444',label:'Weak'}:s<=4?{color:'#f59e0b',label:'Medium'}:{color:'#22c55e',label:'Strong'};});
+  const copyPw=()=>{cp(pw.value.val);pw.value.copied=true;setTimeout(()=>pw.value.copied=false,1500);};
+  return {dark,toggleTheme,pw,genPw,pwStr,copyPw};
+}}).mount('#app');
+</script>
+</body>
+</html>
