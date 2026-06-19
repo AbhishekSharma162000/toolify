@@ -309,83 +309,52 @@ const TOOLS = {
   },
 };
 
-function buildMeta(m) {
-  const url = BASE + (m.id ? Object.keys(TOOLS).find(k => TOOLS[k].id === m.id) || '/' : '/');
-  const schema = {
-    '@context': 'https://schema.org',
-    '@type': 'WebApplication',
-    name: m.title.split('—')[0].trim(),
-    description: m.desc,
-    url,
-    applicationCategory: 'UtilitiesApplication',
-    operatingSystem: 'Any',
-    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  };
-  return `<meta name="description" content="${esc(m.desc)}">
-<meta name="keywords" content="${esc(m.keys)}">
-<meta property="og:type" content="website">
-<meta property="og:title" content="${esc(m.title)}">
-<meta property="og:description" content="${esc(m.desc)}">
-<meta property="og:url" content="${url}">
-<meta property="og:site_name" content="Toolify">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="${esc(m.title)}">
-<meta name="twitter:description" content="${esc(m.desc)}">
-<script type="application/ld+json">${JSON.stringify(schema)}<\/script>`;
-}
-
-function esc(s) {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/$/, '') || '/';
-    const meta = TOOLS[path] || TOOLS[path + '/'] || null;
 
-    // For tool/home pages, inject SEO meta tags into HTML
-    if (meta || path === '/') {
-      const m = meta || TOOLS['/'];
-      const canonicalPath = path === '' ? '/' : path;
-      const canonical = BASE + canonicalPath;
-
-      try {
-        // Fetch the index.html from static assets
-        const assetRes = await env.ASSETS.fetch(new URL('/', request.url).toString());
-        if (!assetRes.ok) return env.ASSETS.fetch(request);
-
-        let html = await assetRes.text();
-
-        // Inject title
-        html = html.replace(
-          '<title>Toolify — Free Online Tools</title>',
-          `<title>${esc(m.title)}</title>`
-        );
-
-        // Inject SEO meta tags
-        html = html.replace(
-          '<!-- SEO_META_PLACEHOLDER -->',
-          buildMeta(m)
-        );
-
-        // Inject canonical URL
-        html = html.replace(
-          '<link rel="canonical" href="https://toolzyo.shop/">',
-          `<link rel="canonical" href="${canonical}">`
-        );
-
-        return new Response(html, {
-          headers: {
-            'Content-Type': 'text/html;charset=UTF-8',
-            'Cache-Control': 'public, max-age=3600',
-          },
-        });
-      } catch (e) {
-        return env.ASSETS.fetch(request);
-      }
+    // Root homepage — serve as-is (has its own SEO)
+    if (path === '/') {
+      return env.ASSETS.fetch(request);
     }
 
+    // Known tool paths — serve standalone tool page with SEO injection
+    const meta = TOOLS[path] || null;
+    if (meta) {
+      const canonical = BASE + path;
+      try {
+        const toolRes = await env.ASSETS.fetch(new URL(path + '/index.html', request.url).toString());
+        if (toolRes.ok) {
+          let html = await toolRes.text();
+          // Inject canonical link
+          if (!html.includes('rel="canonical"')) {
+            html = html.replace('</head>', `<link rel="canonical" href="${canonical}">\n</head>`);
+          }
+          // Inject structured data for SEO
+          const schema = JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebApplication',
+            name: meta.title.split('—')[0].trim(),
+            description: meta.desc,
+            url: canonical,
+            applicationCategory: 'UtilitiesApplication',
+            operatingSystem: 'Any',
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+          });
+          html = html.replace('</head>', `<script type="application/ld+json">${schema}<\/script>\n</head>`);
+          return new Response(html, {
+            headers: {
+              'Content-Type': 'text/html;charset=UTF-8',
+              'Cache-Control': 'public, max-age=3600',
+            },
+          });
+        }
+      } catch (e) {}
+    }
+
+    // All other assets (CSS, JS, images, unknown tool paths)
     return env.ASSETS.fetch(request);
   },
 };
