@@ -36,7 +36,6 @@
     flex-direction: column;
   }
 
-  /* Navbar */
   .navbar {
     display: flex;
     align-items: center;
@@ -67,7 +66,6 @@
   }
   .back-btn:hover { border-color: var(--purple); color: var(--purple); }
 
-  /* Page body */
   .page-body {
     flex: 1;
     display: flex;
@@ -322,51 +320,6 @@
   }
   .btn-ok.green { background: linear-gradient(135deg, #16a34a, var(--green)); }
 
-  .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
-
-  .drive-row { display: flex; gap: 10px; margin-bottom: 1.25rem; }
-  .drive-btn {
-    flex: 1; height: 64px; border-radius: var(--radius-sm);
-    background: var(--surface2); border: 1.5px solid var(--border);
-    color: var(--text); font-size: 15px; font-weight: 600;
-    cursor: pointer; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 3px; transition: all 0.15s;
-  }
-  .drive-btn span.di { font-size: 22px; }
-  .drive-btn:hover { border-color: var(--border2); }
-  .drive-btn.active { border-color: var(--green); background: rgba(34,197,94,0.08); color: var(--green); }
-
-  .folder-list {
-    max-height: 160px; overflow-y: auto;
-    display: flex; flex-wrap: wrap; gap: 6px;
-    margin-bottom: 0.75rem; padding: 2px;
-    scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
-  }
-  .folder-item {
-    height: 30px; padding: 0 12px;
-    border: 1px solid var(--border); border-radius: 99px;
-    background: var(--surface2); color: var(--muted);
-    font-size: 12px; cursor: pointer; transition: all 0.15s;
-    display: flex; align-items: center; white-space: nowrap; user-select: none;
-  }
-  .folder-item:hover { border-color: var(--border2); color: var(--text); }
-  .folder-item.active { border-color: var(--green); background: rgba(34,197,94,0.12); color: var(--green); }
-  .folder-step { display: none; }
-  .folder-new-row { display: flex; gap: 8px; margin-bottom: 1rem; }
-  .folder-new-row .modal-input { margin-bottom: 0; flex: 1; }
-
-  .server-notice {
-    background: rgba(124,111,255,0.08);
-    border: 1px solid rgba(124,111,255,0.25);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 1.25rem;
-    line-height: 1.5;
-  }
-  .server-notice strong { color: var(--purple); }
-
   .footer {
     text-align: center;
     padding: 24px;
@@ -403,10 +356,6 @@
 </div>
 
 <div class="card">
-  <div class="server-notice">
-    <strong>⚡ Local backend required</strong> — Start the backend server (<code>node server.js</code> on port 7842) before downloading.
-  </div>
-
   <!-- URL Input -->
   <div class="url-row">
     <input type="text" id="urlInput" placeholder="Paste YouTube URL or playlist URL…" />
@@ -455,7 +404,7 @@
       <div class="opt-icon playlist">📋</div>
       <div style="flex:1">
         <p class="opt-name">Playlist Audio</p>
-        <p class="opt-desc">Download all episodes as MP3 — saved as EP 1, EP 2… inside a ZIP folder</p>
+        <p class="opt-desc">Download all episodes as MP3 — each saved to your Downloads folder</p>
       </div>
       <div class="check-dot" id="playlistDot"></div>
     </div>
@@ -490,7 +439,7 @@
   <div class="progress-wrap" id="progWrap">
     <div class="progress-top">
       <div class="progress-label" id="progLabel">Preparing…</div>
-      <button class="cancel-btn" id="cancelBtn" onclick="openPauseModal()" title="Pause / Stop">✕</button>
+      <button class="cancel-btn" id="cancelBtn" onclick="openPauseModal()" title="Stop">✕</button>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progFill"></div>
@@ -508,36 +457,6 @@
     <div class="modal-actions">
       <button class="btn-cancel" onclick="stopDownload()">Stop downloading</button>
       <button class="btn-ok green" onclick="continueDownload()">▶ Continue</button>
-    </div>
-  </div>
-</div>
-
-<!-- Save location modal -->
-<div class="modal-overlay" id="saveModal">
-  <div class="modal-box" style="max-width:460px">
-    <p class="modal-title">Choose save location</p>
-    <p class="modal-sub">Pick a drive, then select or create a folder.</p>
-    <div class="drive-row">
-      <button class="drive-btn" id="driveBtnC" onclick="selectDrive('home')">
-        <span class="di">🏠</span><span>Home</span>
-      </button>
-      <button class="drive-btn" id="driveBtnD" onclick="selectDrive('media')">
-        <span class="di">💿</span><span>Media</span>
-      </button>
-    </div>
-    <div class="folder-step" id="folderStep">
-      <p class="section-label" id="folderStepLabel">Folders on D:\</p>
-      <div class="folder-list" id="folderList"></div>
-      <p class="section-label" style="margin-bottom:6px">Or create a new folder</p>
-      <div class="folder-new-row">
-        <input class="modal-input" id="newFolderInput" placeholder="New folder name…" oninput="onNewFolderType()" />
-        <button class="btn-ok green" style="height:40px;padding:0 14px;white-space:nowrap" onclick="useNewFolder()">+ Create</button>
-      </div>
-    </div>
-    <div class="divider"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeSaveModal()">Cancel</button>
-      <button class="btn-ok green" id="saveOkBtn" onclick="confirmSaveLocation()" disabled style="opacity:0.4;cursor:not-allowed">Save here ↓</button>
     </div>
   </div>
 </div>
@@ -562,22 +481,18 @@
 </footer>
 
 <script>
-const API = 'http://localhost:7842';
-
 const sel = { video: false, audio: false, playlist: false };
 const fmt = { video: 'best', audio: '192' };
 let currentUrl = '';
 let currentTitle = '';
 let currentVideos = [];
 let downloading = false;
-let saveDrive = '';
-let saveFolder = '';
-let saveRoot = '';
 let isPlaylistDownload = false;
 let playlistPaused = false;
 let playlistStopped = false;
 let pausePromiseResolve = null;
-let downloadAbortController = null;
+
+const QUALITY_MAP = { best: 'max', '1080p': '1080', '720p': '720', '480p': '480', '360p': '360' };
 
 function toggleOpt(type) {
   if (type === 'playlist') {
@@ -638,7 +553,8 @@ function updateDlBtn() {
 
 function fmtDuration(s) {
   if (!s) return '';
-  const m = Math.floor(s / 60), sec = s % 60;
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
 function fmtViews(n) {
@@ -653,25 +569,49 @@ async function analyzeUrl() {
   if (!url) { showToast('Paste a URL first', 'error'); return; }
   const btn = document.getElementById('analyzeBtn');
   btn.textContent = 'Loading…'; btn.disabled = true;
+  currentUrl = url;
   try {
     if (sel.playlist) {
-      const res = await fetch(API + '/api/playlist-info', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url}) });
+      const isPlaylistUrl = url.includes('list=') || url.includes('/playlist');
+      if (!isPlaylistUrl) {
+        showToast('Paste a YouTube playlist URL (must contain list=...)', 'error');
+        return;
+      }
+      // Use Cobalt to get picker items for the playlist
+      const res = await fetch('/api/yt-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, downloadMode: 'audio', audioFormat: 'mp3', audioBitrate: fmt.audio })
+      });
       const data = await res.json();
-      if (!res.ok) { showToast(data.error || 'Failed to fetch playlist info', 'error'); return; }
-      currentUrl = url; currentTitle = data.title || 'Playlist'; currentVideos = data.videos || [];
-      showPlaylistInfo(data.title, data.count);
-      showToast(`Playlist found — ${data.count} episodes`, 'success');
+      if (data.status === 'picker' && data.picker) {
+        currentVideos = data.picker.map((item, i) => ({ url: item.url, title: item.title || `EP ${i+1}`, index: i + 1 }));
+        currentTitle = 'Playlist';
+        showPlaylistInfo('Playlist', currentVideos.length);
+        showToast(`Playlist found — ${currentVideos.length} episodes`, 'success');
+      } else if (data.status === 'redirect' || data.status === 'tunnel') {
+        // Single video mistakenly passed as playlist
+        currentVideos = [{ url: data.url, title: 'EP 1', index: 1 }];
+        showPlaylistInfo('Playlist', 1);
+        showToast('1 episode ready to download', 'success');
+      } else if (data.error) {
+        showToast(data.error.code || 'Failed to fetch playlist', 'error');
+        return;
+      } else {
+        showToast('Could not read playlist. Try a direct playlist URL.', 'error');
+        return;
+      }
     } else {
-      const res = await fetch(API + '/api/info', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url}) });
+      const res = await fetch(`/api/yt-info?url=${encodeURIComponent(url)}`);
       const data = await res.json();
-      if (!res.ok) { showToast(data.error || 'Failed to fetch info', 'error'); return; }
-      currentUrl = url; currentTitle = data.title || '';
+      if (data.error) { showToast(data.error, 'error'); return; }
+      currentTitle = data.title || '';
       showVideoInfo(data);
       showToast('Video found — choose your format', 'success');
     }
     updateDlBtn();
   } catch {
-    showToast('Server not reachable. Is the backend running on port 7842?', 'error');
+    showToast('Failed to fetch info. Check the URL and try again.', 'error');
   } finally {
     btn.textContent = 'Analyze ↗'; btn.disabled = false;
   }
@@ -691,7 +631,7 @@ function showVideoInfo(data) {
 function showPlaylistInfo(title, count) {
   document.getElementById('thumbWrap').style.display = 'none';
   document.getElementById('playlistIcon').style.display = '';
-  document.getElementById('vidTitle').textContent = title || 'Unknown Playlist';
+  document.getElementById('vidTitle').textContent = title || 'Playlist';
   document.getElementById('vidUploader').textContent = `${count} episodes`;
   document.getElementById('vidDuration').textContent = '';
   document.getElementById('vidViews').textContent = '';
@@ -702,80 +642,7 @@ function startDownload() {
   if (!sel.video && !sel.audio && !sel.playlist) { showToast('Select a format first', 'error'); return; }
   if (!currentUrl) { showToast('Click Analyze first', 'error'); return; }
   if (downloading) return;
-  if (sel.playlist) { openSaveModal(); } else { openModal(); }
-}
-
-function openSaveModal() {
-  saveDrive = ''; saveFolder = ''; saveRoot = '';
-  ['driveBtnC','driveBtnD'].forEach(id => document.getElementById(id).classList.remove('active'));
-  document.getElementById('folderStep').style.display = 'none';
-  document.getElementById('newFolderInput').value = '';
-  setSaveOkEnabled(false);
-  document.getElementById('saveModal').classList.add('show');
-}
-function closeSaveModal() { document.getElementById('saveModal').classList.remove('show'); }
-
-function setSaveOkEnabled(on) {
-  const btn = document.getElementById('saveOkBtn');
-  btn.disabled = !on;
-  btn.style.opacity = on ? '1' : '0.4';
-  btn.style.cursor = on ? 'pointer' : 'not-allowed';
-}
-
-async function selectDrive(letter) {
-  saveDrive = letter; saveFolder = ''; saveRoot = '';
-  document.getElementById('driveBtnC').classList.toggle('active', letter === 'home');
-  document.getElementById('driveBtnD').classList.toggle('active', letter === 'media');
-  setSaveOkEnabled(false);
-  document.getElementById('newFolderInput').value = '';
-  const step = document.getElementById('folderStep');
-  const list = document.getElementById('folderList');
-  step.style.display = 'block';
-  list.innerHTML = '<span style="color:var(--muted);font-size:13px">Loading…</span>';
-  try {
-    const r = await fetch(API + `/api/folders?drive=${letter}`);
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error);
-    saveRoot = d.root || d.drive || '';
-    document.getElementById('folderStepLabel').textContent = `Folders in ${saveRoot}/`;
-    list.innerHTML = '';
-    (d.folders || []).forEach(name => {
-      const el = document.createElement('div');
-      el.className = 'folder-item';
-      el.textContent = '📁 ' + name;
-      el.onclick = () => selectFolderItem(el, name);
-      list.appendChild(el);
-    });
-    if (!d.folders.length) list.innerHTML = '<span style="color:var(--muted);font-size:13px">No folders found — create one below.</span>';
-  } catch (e) {
-    list.innerHTML = `<span style="color:var(--accent);font-size:13px">Error: ${e.message}</span>`;
-  }
-}
-
-function selectFolderItem(el, name) {
-  document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
-  el.classList.add('active');
-  saveFolder = name;
-  document.getElementById('newFolderInput').value = '';
-  setSaveOkEnabled(true);
-}
-function onNewFolderType() {
-  document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
-  saveFolder = ''; setSaveOkEnabled(false);
-}
-function useNewFolder() {
-  const name = document.getElementById('newFolderInput').value.trim().replace(/[/\\?%*:|"<>]/g, '');
-  if (!name) { showToast('Type a folder name first', 'error'); return; }
-  saveFolder = name;
-  document.querySelectorAll('.folder-item').forEach(f => f.classList.remove('active'));
-  setSaveOkEnabled(true);
-  showToast(`Will create "${name}" in ${saveRoot}/`, 'success');
-}
-function confirmSaveLocation() {
-  if (!saveRoot || !saveFolder) { showToast('Pick a location first', 'error'); return; }
-  const fullPath = saveRoot + '/' + saveFolder;
-  closeSaveModal();
-  runPlaylistDownload(currentUrl, fullPath, fmt.audio);
+  if (sel.playlist) { runPlaylistDownload(); } else { openModal(); }
 }
 
 function openPauseModal() {
@@ -783,9 +650,9 @@ function openPauseModal() {
     playlistPaused = true;
     const lbl = document.getElementById('progLabel');
     if (!lbl.textContent.includes('(paused)')) lbl.textContent += ' — paused';
-    document.getElementById('pauseModalSub').textContent = 'The current episode will finish, then the download will wait for you.';
+    document.getElementById('pauseModalSub').textContent = 'The current episode will finish, then the download will pause.';
   } else {
-    document.getElementById('pauseModalSub').textContent = 'Your download is paused. Continue or stop completely.';
+    document.getElementById('pauseModalSub').textContent = 'Your download is in progress. Stop it?';
   }
   document.getElementById('pauseModal').classList.add('show');
 }
@@ -798,12 +665,8 @@ function continueDownload() {
 }
 function stopDownload() {
   document.getElementById('pauseModal').classList.remove('show');
-  if (isPlaylistDownload) {
-    playlistStopped = true; playlistPaused = false;
-    if (pausePromiseResolve) { pausePromiseResolve(); pausePromiseResolve = null; }
-  } else {
-    if (downloadAbortController) { downloadAbortController.abort(); downloadAbortController = null; }
-  }
+  playlistStopped = true; playlistPaused = false;
+  if (pausePromiseResolve) { pausePromiseResolve(); pausePromiseResolve = null; }
 }
 
 function openModal() {
@@ -812,15 +675,15 @@ function openModal() {
   const suggested = sanitizeName(currentTitle) || 'My Download';
   if (sel.video && sel.audio) {
     document.getElementById('modalTitle').textContent = 'Name your download';
-    document.getElementById('modalSub').textContent = 'Used as the filename for both the MP4 video and MP3 audio.';
+    document.getElementById('modalSub').textContent = 'Used as the filename for both the video and audio files.';
     okBtn.className = 'btn-ok'; input.placeholder = suggested;
   } else if (sel.video) {
     document.getElementById('modalTitle').textContent = 'Name your video';
-    document.getElementById('modalSub').textContent = 'Your file will be saved as this name with a .mp4 extension.';
+    document.getElementById('modalSub').textContent = 'Your file will be saved with a .mp4 extension.';
     okBtn.className = 'btn-ok'; input.placeholder = suggested;
   } else {
     document.getElementById('modalTitle').textContent = 'Name your audio';
-    document.getElementById('modalSub').textContent = 'Your file will be saved as this name with a .mp3 extension.';
+    document.getElementById('modalSub').textContent = 'Your file will be saved with a .mp3 extension.';
     okBtn.className = 'btn-ok'; input.placeholder = suggested;
   }
   input.value = '';
@@ -835,115 +698,122 @@ async function confirmDownload() {
   closeModal();
   isPlaylistDownload = false; downloading = true; updateDlBtn();
   try {
-    if (sel.video) {
-      await downloadFile({ url: currentUrl, type: 'video', quality: fmt.video, filename: name }, name + '.mp4', 'Downloading video…');
-      if (!downloadAbortController?.signal.aborted) showToast('Video saved to Downloads ✓', 'success');
-    }
-    if (sel.audio && !downloadAbortController?.signal.aborted) {
-      await downloadFile({ url: currentUrl, type: 'audio', audioBitrate: fmt.audio, filename: name }, name + '.mp3', 'Downloading audio…');
-      if (!downloadAbortController?.signal.aborted) showToast('Audio saved to Downloads ✓', 'success');
-    }
+    if (sel.video) await downloadViaCobalt('video', name);
+    if (sel.audio) await downloadViaCobalt('audio', name);
   } catch (e) {
-    if (e.message === 'cancelled') showToast('Download stopped', 'error');
-    else showToast('Download failed: ' + (e.message || 'Unknown error'), 'error');
+    showToast('Download failed: ' + (e.message || 'Unknown error'), 'error');
   } finally {
-    downloading = false; downloadAbortController = null;
-    setTimeout(() => setProgress(false), 1500); updateDlBtn();
+    downloading = false;
+    setTimeout(() => setProgress(false), 2000); updateDlBtn();
   }
 }
 
-async function downloadFile(params, filename, label) {
-  return new Promise((resolve, reject) => {
-    const qs = new URLSearchParams(params).toString();
-    const url = API + '/api/download?' + qs;
-    setProgress(true, label, 10);
-    downloadAbortController = new AbortController();
-    fetch(url, { signal: downloadAbortController.signal }).then(async res => {
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Download failed' }));
-        throw new Error(err.error);
-      }
-      const total = parseInt(res.headers.get('Content-Length') || '0');
-      const reader = res.body.getReader();
-      const chunks = []; let received = 0;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value); received += value.length;
-        if (total) setProgress(true, label, Math.min(90, 10 + (received / total) * 80));
-        else setProgress(true, label, Math.min(85, received / 1e6 * 10 + 10));
-      }
-      setProgress(true, label, 100);
-      const blob = new Blob(chunks);
-      const objUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = objUrl; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(objUrl), 5000);
-      resolve();
-    }).catch(err => {
-      if (err.name === 'AbortError') reject(new Error('cancelled'));
-      else reject(err);
-    });
+async function downloadViaCobalt(type, name) {
+  const body = type === 'video'
+    ? { url: currentUrl, downloadMode: 'auto', videoQuality: QUALITY_MAP[fmt.video] || 'max', filenameStyle: 'basic' }
+    : { url: currentUrl, downloadMode: 'audio', audioFormat: 'mp3', audioBitrate: fmt.audio, filenameStyle: 'basic' };
+
+  setProgress(true, `Getting ${type} link…`, 40);
+
+  const res = await fetch('/api/yt-download', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
   });
+  const data = await res.json();
+
+  if (data.status === 'redirect' || data.status === 'tunnel' || data.status === 'stream') {
+    setProgress(true, 'Starting download…', 90);
+    triggerDownload(data.url, name + (type === 'video' ? '.mp4' : '.mp3'));
+    setProgress(true, 'Download started ✓', 100);
+    showToast(`${type === 'video' ? 'Video' : 'Audio'} download started ✓`, 'success');
+  } else {
+    throw new Error(data.error?.code || `Could not get ${type} download link`);
+  }
 }
 
-async function runPlaylistDownload(url, savePath, bitrate) {
+function triggerDownload(url, filename) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+async function runPlaylistDownload() {
   downloading = true; isPlaylistDownload = true;
   playlistPaused = false; playlistStopped = false; updateDlBtn();
+
   let videos = currentVideos;
+
   if (!videos.length) {
-    setProgress(true, 'Fetching playlist…', 3);
+    setProgress(true, 'Fetching playlist…', 5);
     try {
-      const r = await fetch(API + '/api/playlist-info', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url}) });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Failed');
-      videos = d.videos || []; currentVideos = videos;
+      const res = await fetch('/api/yt-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: currentUrl, downloadMode: 'audio', audioFormat: 'mp3', audioBitrate: fmt.audio })
+      });
+      const data = await res.json();
+      if (data.status === 'picker' && data.picker) {
+        videos = data.picker.map((item, i) => ({ url: item.url, title: item.title || `EP ${i+1}`, index: i + 1 }));
+        currentVideos = videos;
+      } else {
+        throw new Error(data.error?.code || 'Could not fetch playlist');
+      }
     } catch (e) {
       showToast('Could not fetch playlist: ' + e.message, 'error');
-      downloading = false; isPlaylistDownload = false; setProgress(false); updateDlBtn(); return;
+      downloading = false; isPlaylistDownload = false; setProgress(false); updateDlBtn();
+      return;
     }
   }
+
   if (!videos.length) {
     showToast('Playlist appears empty', 'error');
-    downloading = false; isPlaylistDownload = false; setProgress(false); updateDlBtn(); return;
+    downloading = false; isPlaylistDownload = false; setProgress(false); updateDlBtn();
+    return;
   }
-  const total = videos.length; let failed = 0, savedCount = 0;
+
+  const total = videos.length;
+  let started = 0, failed = 0;
+
   for (let i = 0; i < total; i++) {
     if (playlistStopped) break;
     if (playlistPaused) {
       await new Promise(resolve => { pausePromiseResolve = resolve; });
       if (playlistStopped) break;
     }
+
     const vid = videos[i];
-    const epName = `EP ${vid.index}`;
-    const shortTitle = (vid.title || '').slice(0, 40);
-    setProgress(true, `Saving EP ${i + 1} of ${total} — ${shortTitle}`, Math.round((i / total) * 100));
+    const epName = `EP ${vid.index || (i + 1)}`;
+    setProgress(true, `Downloading ${epName} of ${total}`, Math.round((i / total) * 100));
+
     try {
-      const qs = new URLSearchParams({ url: vid.url, savePath, filename: epName, audioBitrate: bitrate }).toString();
-      const r = await fetch(API + '/api/download-disk?' + qs);
-      if (!r.ok) {
-        const err = await r.json().catch(() => ({ error: 'Download failed' }));
-        throw new Error(err.error);
-      }
-      savedCount++;
-    } catch (e) {
-      if (playlistStopped) break;
+      triggerDownload(vid.url, `${epName}.mp3`);
+      started++;
+    } catch {
       failed++;
-      showToast(`EP ${i + 1} failed — skipping`, 'error');
-      await new Promise(r => setTimeout(r, 600));
+      showToast(`${epName} failed — skipping`, 'error');
+    }
+
+    // Small delay between browser downloads
+    if (i < total - 1 && !playlistStopped) {
+      await new Promise(r => setTimeout(r, 1000));
     }
   }
+
   downloading = false; isPlaylistDownload = false;
+
   if (playlistStopped) {
-    setProgress(true, `Stopped — ${savedCount} of ${total} saved to ${savePath}`, Math.round((savedCount / total) * 100));
-    showToast(`Download stopped — ${savedCount} episodes saved`, 'error');
-    setTimeout(() => { setProgress(false); updateDlBtn(); }, 4000);
+    showToast(`Stopped — ${started} episode downloads triggered`, 'error');
   } else {
-    setProgress(true, `Done! ${savedCount} of ${total} saved to ${savePath}`, 100);
-    showToast(`${savedCount} of ${total} episodes saved to ${savePath} ✓`, 'success');
-    setTimeout(() => { setProgress(false); updateDlBtn(); }, 5000);
+    setProgress(true, `All ${started} episode downloads started ✓`, 100);
+    showToast(`${started} of ${total} episodes downloading ✓`, 'success');
   }
+  setTimeout(() => { setProgress(false); updateDlBtn(); }, 4000);
   updateDlBtn();
 }
 

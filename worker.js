@@ -310,10 +310,105 @@ const TOOLS = {
 };
 
 
+function jsonResp(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    },
+  });
+}
+
+function parseIsoDuration(d) {
+  if (!d) return null;
+  const m = d.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return null;
+  const h = parseInt(m[1] || 0), min = parseInt(m[2] || 0), s = parseInt(m[3] || 0);
+  return h * 3600 + min * 60 + s;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/$/, '') || '/';
+
+    // CORS preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Accept',
+        },
+      });
+    }
+
+    // API: YouTube video info via oEmbed + page scraping
+    if (path === '/api/yt-info') {
+      const ytUrl = url.searchParams.get('url');
+      if (!ytUrl) return jsonResp({ error: 'No URL provided' }, 400);
+      try {
+        const oembedRes = await fetch(
+          `https://www.youtube.com/oembed?url=${encodeURIComponent(ytUrl)}&format=json`
+        );
+        if (!oembedRes.ok) return jsonResp({ error: 'Could not fetch video info. Check the URL.' }, 400);
+        const oembed = await oembedRes.json();
+
+        let duration = null, viewCount = null;
+        try {
+          const vidId = new URL(ytUrl).searchParams.get('v');
+          if (vidId) {
+            const pageRes = await fetch(`https://www.youtube.com/watch?v=${vidId}&hl=en`, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept-Language': 'en-US,en;q=0.9',
+              },
+            });
+            if (pageRes.ok) {
+              const html = await pageRes.text();
+              const durMatch = html.match(/"duration":"(PT[^"]+)"/);
+              if (durMatch) duration = parseIsoDuration(durMatch[1]);
+              const viewMatch = html.match(/"viewCount":"(\d+)"/);
+              if (viewMatch) viewCount = parseInt(viewMatch[1]);
+            }
+          }
+        } catch {}
+
+        return jsonResp({
+          title: oembed.title,
+          uploader: oembed.author_name,
+          thumbnail: oembed.thumbnail_url,
+          duration,
+          view_count: viewCount,
+        });
+      } catch (e) {
+        return jsonResp({ error: 'Failed to fetch video info' }, 400);
+      }
+    }
+
+    // API: Proxy download request to Cobalt
+    if (path === '/api/yt-download') {
+      if (request.method !== 'POST') return jsonResp({ error: 'POST required' }, 405);
+      let body;
+      try { body = await request.json(); } catch { return jsonResp({ error: 'Invalid JSON' }, 400); }
+      try {
+        const cobaltRes = await fetch('https://api.cobalt.tools/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'User-Agent': 'toolzyo.shop/1.0',
+          },
+          body: JSON.stringify(body),
+        });
+        const data = await cobaltRes.json();
+        return jsonResp(data, cobaltRes.status);
+      } catch (e) {
+        return jsonResp({ error: 'Download service unavailable', details: e.message }, 502);
+      }
+    }
 
     // Root homepage — serve as-is (has its own SEO)
     if (path === '/') {
