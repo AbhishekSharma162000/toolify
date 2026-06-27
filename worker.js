@@ -394,22 +394,7 @@ export default {
       let body;
       try { body = await request.json(); } catch { return jsonResp({ error: 'Invalid JSON' }, 400); }
 
-      const ytApiUrl = env.YT_API_URL;
-      if (ytApiUrl) {
-        try {
-          const res = await fetch(ytApiUrl + '/stream', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          });
-          const data = await res.json();
-          return jsonResp(data, res.status);
-        } catch (e) {
-          return jsonResp({ error: { code: 'yt-api-unreachable' } }, 502);
-        }
-      }
-
-      // Fallback: try cobalt with API key if YT_API_URL not set yet
+      // Primary: Cobalt API (handles YouTube proxying reliably)
       if (env.COBALT_API_KEY) {
         try {
           const res = await fetch('https://api.cobalt.tools/', {
@@ -419,6 +404,19 @@ export default {
               'Accept': 'application/json',
               'Authorization': `Api-Key ${env.COBALT_API_KEY}`,
             },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          if (res.ok) return jsonResp(data, res.status);
+        } catch {}
+      }
+
+      // Fallback: self-hosted yt-dlp API
+      if (env.YT_API_URL) {
+        try {
+          const res = await fetch(env.YT_API_URL + '/stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
           });
           const data = await res.json();
