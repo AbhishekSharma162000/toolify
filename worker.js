@@ -388,37 +388,45 @@ export default {
       }
     }
 
-    // API: Proxy download request to Cobalt
+    // API: Proxy download request to self-hosted yt-dlp API
     if (path === '/api/yt-download') {
       if (request.method !== 'POST') return jsonResp({ error: 'POST required' }, 405);
       let body;
       try { body = await request.json(); } catch { return jsonResp({ error: 'Invalid JSON' }, 400); }
 
-      const cobaltInstances = [
-        { url: 'https://api.cobalt.tools/', key: env.COBALT_API_KEY || null },
-        { url: 'https://cobalt.api.timelessnesses.me/', key: null },
-        { url: 'https://cobalt.urdl.xyz/', key: null },
-      ];
-
-      let lastData = null;
-      for (const inst of cobaltInstances) {
+      const ytApiUrl = env.YT_API_URL;
+      if (ytApiUrl) {
         try {
-          const headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (compatible; toolzyo/1.0)',
-          };
-          if (inst.key) headers['Authorization'] = `Api-Key ${inst.key}`;
-          const res = await fetch(inst.url, { method: 'POST', headers, body: JSON.stringify(body) });
+          const res = await fetch(ytApiUrl + '/stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
           const data = await res.json();
-          lastData = { data, status: res.status };
-          const errCode = data?.error?.code || '';
-          if (errCode.includes('auth') || errCode.includes('jwt')) continue;
           return jsonResp(data, res.status);
-        } catch { continue; }
+        } catch (e) {
+          return jsonResp({ error: { code: 'yt-api-unreachable' } }, 502);
+        }
       }
 
-      return jsonResp(lastData?.data || { error: { code: 'error.download.service_unavailable' } }, lastData?.status || 502);
+      // Fallback: try cobalt with API key if YT_API_URL not set yet
+      if (env.COBALT_API_KEY) {
+        try {
+          const res = await fetch('https://api.cobalt.tools/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': `Api-Key ${env.COBALT_API_KEY}`,
+            },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          return jsonResp(data, res.status);
+        } catch {}
+      }
+
+      return jsonResp({ error: { code: 'error.download.service_unavailable' } }, 503);
     }
 
     // Root homepage — serve as-is (has its own SEO)
