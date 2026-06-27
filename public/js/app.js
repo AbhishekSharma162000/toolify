@@ -123,7 +123,6 @@ const _vapp=createApp({setup(){
     {id:'wordedit',    icon:'📝',name:'Word Editor',         desc:'Edit .docx files in your browser',   color:'rgba(94,240,200,.15)', cat:'PDF Tools',            hot:true},
     {id:'rank',        icon:'🏆',name:'Rank Calculator',      desc:'Score & rank predictor for govt exams',color:'rgba(255,183,77,.18)',cat:'Career & Templates',   hot:true},
     {id:'pagebuilder', icon:'🚀',name:'Landing Page Builder',  desc:'Drag-and-drop sections, templates, download HTML',color:'rgba(124,111,255,.2)',cat:'Career & Templates',hot:true},
-    {id:'ytdl',        icon:'📥',name:'YouTube Downloader',    desc:'Download videos, audio & playlists as MP4/MP3',  color:'rgba(255,68,68,.18)',  cat:'Media Tools',         hot:true,external:'/youtube-downloader/'},
   ];
   if(window.INITIAL_PAGE&&window.INITIAL_PAGE!=='home'){const _t=allTools.find(t=>t.id===window.INITIAL_PAGE);if(_t)document.title=_t.name+' — Free Online Tool | Toolzyo';}
 
