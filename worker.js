@@ -393,21 +393,32 @@ export default {
       if (request.method !== 'POST') return jsonResp({ error: 'POST required' }, 405);
       let body;
       try { body = await request.json(); } catch { return jsonResp({ error: 'Invalid JSON' }, 400); }
-      try {
-        const cobaltRes = await fetch('https://api.cobalt.tools/', {
-          method: 'POST',
-          headers: {
+
+      const cobaltInstances = [
+        { url: 'https://api.cobalt.tools/', key: env.COBALT_API_KEY || null },
+        { url: 'https://cobalt.api.timelessnesses.me/', key: null },
+        { url: 'https://cobalt.urdl.xyz/', key: null },
+      ];
+
+      let lastData = null;
+      for (const inst of cobaltInstances) {
+        try {
+          const headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'User-Agent': 'toolzyo.shop/1.0',
-          },
-          body: JSON.stringify(body),
-        });
-        const data = await cobaltRes.json();
-        return jsonResp(data, cobaltRes.status);
-      } catch (e) {
-        return jsonResp({ error: 'Download service unavailable', details: e.message }, 502);
+            'User-Agent': 'Mozilla/5.0 (compatible; toolzyo/1.0)',
+          };
+          if (inst.key) headers['Authorization'] = `Api-Key ${inst.key}`;
+          const res = await fetch(inst.url, { method: 'POST', headers, body: JSON.stringify(body) });
+          const data = await res.json();
+          lastData = { data, status: res.status };
+          const errCode = data?.error?.code || '';
+          if (errCode.includes('auth') || errCode.includes('jwt')) continue;
+          return jsonResp(data, res.status);
+        } catch { continue; }
       }
+
+      return jsonResp(lastData?.data || { error: { code: 'error.download.service_unavailable' } }, lastData?.status || 502);
     }
 
     // Root homepage — serve as-is (has its own SEO)
